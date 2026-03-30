@@ -19,6 +19,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null);
+  const [showStops, setShowStops] = useState(false);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -135,6 +136,8 @@ export default function App() {
           colorMap={colorMap}
           onToggle={handleToggle}
           onClearAll={handleClearAll}
+          showStops={showStops}
+          onToggleShowStops={() => setShowStops((s) => !s)}
           locationSearch={
             <LocationSearch
               onSelect={handleLocationSelect}
@@ -151,6 +154,7 @@ export default function App() {
           colorMap={colorMap}
           selectedLocation={selectedLocation}
           nearestStops={nearestStops}
+          showStops={showStops}
         />
       </div>
     </div>
