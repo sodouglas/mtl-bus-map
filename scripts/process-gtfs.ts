@@ -236,14 +236,36 @@ async function main() {
     "#00B5E2", "#FF6720", "#005DA8", "#8DC63F", "#C8102E",
   ];
 
+  // Pre-collect terminal station names for each metro route (both directions)
+  const metroTerminals = new Map<string, Set<string>>();
+  for (const [key, trips] of tripsByRouteDir) {
+    const [routeId] = key.split("|");
+    const route = routeMap.get(routeId);
+    if (!route || route.route_type !== "1") continue;
+    if (!metroTerminals.has(routeId)) metroTerminals.set(routeId, new Set());
+    for (const t of trips) {
+      if (t.headsign) metroTerminals.get(routeId)!.add(t.headsign);
+    }
+  }
+
   const results: RouteData[] = [];
   let colorIdx = 0;
+
+  // Track metro routes already processed (direction doesn't matter for metro)
+  const processedMetroRoutes = new Set<string>();
 
   for (const [key, trips] of tripsByRouteDir) {
     const [routeId, directionIdStr] = key.split("|");
     const route = routeMap.get(routeId);
     if (!route) continue;
     const directionId = parseInt(directionIdStr);
+    const isMetro = route.route_type === "1";
+
+    // Skip duplicate metro directions — one entry per metro line is enough
+    if (isMetro) {
+      if (processedMetroRoutes.has(routeId)) continue;
+      processedMetroRoutes.add(routeId);
+    }
 
     // Count shape occurrences to find the most common (fullest) shape
     const shapeCounts = new Map<string, number>();
@@ -291,16 +313,19 @@ async function main() {
     }
 
     const routeNumber = route.route_short_name ?? routeId;
-    const isMetro = route.route_type === "1";
     const rawColor = route.route_color ? `#${route.route_color}` : null;
     const color = rawColor && rawColor !== "#" ? rawColor : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
     if (!isMetro) colorIdx++;
 
     results.push({
-      id: `${routeId}-${directionId}`,
+      id: isMetro ? routeId : `${routeId}-${directionId}`,
       routeNumber,
-      direction: headsign,
-      directionId,
+      direction: isMetro
+        ? [...(metroTerminals.get(routeId) ?? [])]
+            .map((h) => h.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+            .join(" / ")
+        : headsign,
+      directionId: isMetro ? 0 : directionId,
       name: route.route_long_name ?? "",
       color,
       routeType: isMetro ? "metro" : "bus",
