@@ -47,6 +47,60 @@ export function distanceToSegment(
   return haversineDistance(pLat, pLng, projLat, projLng);
 }
 
+interface ArrowPoint {
+  lat: number;
+  lng: number;
+  angle: number;
+}
+
+export function bearing(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const φ1 = lat1 * DEG_TO_RAD;
+  const φ2 = lat2 * DEG_TO_RAD;
+  const Δλ = (lng2 - lng1) * DEG_TO_RAD;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x =
+    Math.cos(φ1) * Math.sin(φ2) -
+    Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
+}
+
+export function sampleArrowPoints(
+  path: [number, number][],
+  intervalMeters = 500,
+): ArrowPoint[] {
+  const points: ArrowPoint[] = [];
+  let accumulated = intervalMeters * 0.5;
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const [lat1, lng1] = path[i];
+    const [lat2, lng2] = path[i + 1];
+    const segLen = haversineDistance(lat1, lng1, lat2, lng2);
+    if (segLen === 0) continue;
+
+    const angle = bearing(lat1, lng1, lat2, lng2);
+    let distIntoSeg = intervalMeters - accumulated;
+
+    while (distIntoSeg <= segLen) {
+      const t = distIntoSeg / segLen;
+      points.push({
+        lat: lat1 + t * (lat2 - lat1),
+        lng: lng1 + t * (lng2 - lng1),
+        angle,
+      });
+      distIntoSeg += intervalMeters;
+    }
+
+    accumulated = segLen - (distIntoSeg - intervalMeters);
+  }
+
+  return points;
+}
+
 export function distanceToPolyline(
   lat: number,
   lng: number,

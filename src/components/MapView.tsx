@@ -2,6 +2,7 @@ import { MapContainer, TileLayer, Polyline, Tooltip } from "react-leaflet";
 import type { RouteData, SelectedLocation, NearestStop } from "../types";
 import { LocationMarker } from "./LocationMarker";
 import { NearestStopMarkers } from "./NearestStopMarkers";
+import { RouteArrows } from "./RouteArrows";
 import { RouteStopMarkers } from "./RouteStopMarkers";
 
 interface Props {
@@ -45,6 +46,7 @@ export function MapView({ selectedRoutes, colorMap, selectedLocation, nearestSto
           </Polyline>
         );
       })}
+      <RouteArrows selectedRoutes={selectedRoutes} colorMap={colorMap} />
       {showStops && <RouteStopMarkers selectedRoutes={selectedRoutes} colorMap={colorMap} />}
       {selectedLocation && <LocationMarker location={selectedLocation} />}
       {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
