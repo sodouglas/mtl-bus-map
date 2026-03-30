@@ -172,6 +172,78 @@ body,
   font-size: 13px;
 }
 
+/* ── Mode Sections (Collapsible) ── */
+.mode-section {
+  border-bottom: 1px solid #eee;
+}
+
+.mode-section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+
+.mode-section-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  flex: 1;
+}
+
+.mode-section-chevron {
+  font-size: 10px;
+  color: #888;
+  transition: transform 0.15s;
+  display: inline-block;
+}
+
+.mode-section-chevron--open {
+  transform: rotate(90deg);
+}
+
+.mode-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #555;
+}
+
+.mode-section-header input[type="checkbox"] {
+  cursor: pointer;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.mode-section-content {
+  /* content visible when expanded */
+}
+
+.mode-section-search {
+  padding: 8px 16px 4px;
+}
+
+.mode-section-search input[type="search"] {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 13px;
+  outline: none;
+}
+
+.mode-section-search input[type="search"]:focus {
+  border-color: #009ee0;
+}
+
 /* ── Map ── */
 .map-wrapper {
   flex: 1;
@@ -414,6 +486,14 @@ body,
   border-radius: 50%;
   border: 1.5px solid #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.metro-stop-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Route Direction Arrows ── */

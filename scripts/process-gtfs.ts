@@ -20,6 +20,7 @@ interface RouteData {
   directionId: number;
   name: string;
   color: string;
+  routeType: "bus" | "metro";
   path: [number, number][];
   stops: StopData[];
 }
@@ -116,10 +117,12 @@ async function main() {
 
   console.log("Parsing routes.txt...");
   const routesRaw = parseCSV(await readFile("routes.txt"));
-  const busRoutes = routesRaw.filter((r) => r.route_type === "3");
-  const routeMap = new Map(busRoutes.map((r) => [r.route_id, r]));
+  const transitRoutes = routesRaw.filter(
+    (r) => r.route_type === "3" || r.route_type === "1"
+  );
+  const routeMap = new Map(transitRoutes.map((r) => [r.route_id, r]));
 
-  console.log(`Found ${busRoutes.length} bus routes`);
+  console.log(`Found ${transitRoutes.length} transit routes (bus + metro)`);
 
   console.log("Parsing trips.txt...");
   const tripsRaw = parseCSV(await readFile("trips.txt"));
@@ -288,9 +291,10 @@ async function main() {
     }
 
     const routeNumber = route.route_short_name ?? routeId;
+    const isMetro = route.route_type === "1";
     const rawColor = route.route_color ? `#${route.route_color}` : null;
     const color = rawColor && rawColor !== "#" ? rawColor : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
-    colorIdx++;
+    if (!isMetro) colorIdx++;
 
     results.push({
       id: `${routeId}-${directionId}`,
@@ -299,13 +303,15 @@ async function main() {
       directionId,
       name: route.route_long_name ?? "",
       color,
+      routeType: isMetro ? "metro" : "bus",
       path,
       stops,
     });
   }
 
-  // Sort numerically by route number
+  // Sort metro before bus, then numerically by route number
   results.sort((a, b) => {
+    if (a.routeType !== b.routeType) return a.routeType === "metro" ? -1 : 1;
     const na = parseInt(a.routeNumber) || 0;
     const nb = parseInt(b.routeNumber) || 0;
     if (na !== nb) return na - nb;
