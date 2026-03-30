@@ -16,6 +16,7 @@ body,
   display: flex;
   height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
 /* ── Sidebar ── */
@@ -26,6 +27,69 @@ body,
   flex-direction: column;
   border-right: 1px solid #ddd;
   background: #fff;
+  flex-shrink: 0;
+  margin-left: 0;
+  transition: margin-left 0.25s ease;
+}
+
+.sidebar--collapsed {
+  margin-left: -350px;
+}
+
+/* ── Sidebar Toggle ── */
+.sidebar-toggle {
+  position: absolute;
+  top: 10px;
+  left: calc(350px - 42px);
+  z-index: 1002;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  font-size: 20px;
+  line-height: 1;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.25s ease;
+}
+
+.sidebar-toggle--collapsed {
+  left: 10px;
+}
+
+.sidebar-toggle:hover {
+  background: #f0f0f0;
+  color: #222;
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    width: 100%;
+    min-width: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 1001;
+    margin-left: 0;
+  }
+
+  .sidebar--collapsed {
+    margin-left: -100%;
+  }
+
+  .sidebar-toggle {
+    left: calc(100% - 42px);
+  }
+
+  .sidebar-toggle--collapsed {
+    left: 10px;
+  }
 }
 
 .route-list {

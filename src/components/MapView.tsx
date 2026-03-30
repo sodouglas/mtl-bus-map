@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Polyline, Tooltip } from "react-leaflet";
+import { MapContainer, TileLayer, Polyline, Tooltip, ZoomControl } from "react-leaflet";
 import type { RouteData, SelectedLocation, NearestStop } from "../types";
 import { LocationMarker } from "./LocationMarker";
 import { NearestStopMarkers } from "./NearestStopMarkers";
@@ -18,7 +18,8 @@ const MONTREAL: [number, number] = [45.5017, -73.5673];
 
 export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRadius = 200, nearestStops = [], showStops }: Props) {
   return (
-    <MapContainer center={MONTREAL} zoom={12} className="map-container">
+    <MapContainer center={MONTREAL} zoom={12} className="map-container" zoomControl={false}>
+      <ZoomControl position="topright" />
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

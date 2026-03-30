@@ -26,6 +26,7 @@ export default function App() {
   const [radiusExpanded, setRadiusExpanded] = useState(false);
   const [showStops, setShowStops] = useState(false);
   const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -153,7 +154,7 @@ export default function App() {
 
   return (
     <div className="app">
-      <aside className="sidebar">
+      <aside className={`sidebar${sidebarOpen ? "" : " sidebar--collapsed"}`}>
         <RouteList
           routes={visibleRoutes}
           selectedIds={selectedIds}
@@ -187,6 +188,14 @@ export default function App() {
           }
         />
       </aside>
+      <button
+        className={`sidebar-toggle${sidebarOpen ? "" : " sidebar-toggle--collapsed"}`}
+        onClick={() => setSidebarOpen((v) => !v)}
+        aria-label={sidebarOpen ? "Hide panel" : "Show panel"}
+        title={sidebarOpen ? "Hide panel" : "Show panel"}
+      >
+        {sidebarOpen ? "\u2039" : "\u203A"}
+      </button>
       <div className="map-wrapper">
         <MapView
           selectedRoutes={selectedRoutes}
