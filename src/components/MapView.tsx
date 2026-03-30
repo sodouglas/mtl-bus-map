@@ -1,9 +1,10 @@
 import { MapContainer, TileLayer, Polyline, Tooltip } from "react-leaflet";
-import type { RouteData, SelectedLocation, NearestStop } from "../types";
+import type { RouteData, SelectedLocation, NearestStop, IsochroneRing } from "../types";
 import { LocationMarker } from "./LocationMarker";
 import { NearestStopMarkers } from "./NearestStopMarkers";
 import { RouteArrows } from "./RouteArrows";
 import { RouteStopMarkers } from "./RouteStopMarkers";
+import { IsochroneRings } from "./IsochroneRings";
 
 interface Props {
   selectedRoutes: RouteData[];
@@ -12,17 +13,22 @@ interface Props {
   locationRadius?: number;
   nearestStops?: NearestStop[];
   showStops?: boolean;
+  isochroneRings?: IsochroneRing[] | null;
+  showIsochrones?: boolean;
 }
 
 const MONTREAL: [number, number] = [45.5017, -73.5673];
 
-export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRadius = 200, nearestStops = [], showStops }: Props) {
+export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRadius = 200, nearestStops = [], showStops, isochroneRings, showIsochrones = true }: Props) {
   return (
     <MapContainer center={MONTREAL} zoom={12} className="map-container">
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
+      {showIsochrones && isochroneRings && isochroneRings.length > 0 && (
+        <IsochroneRings rings={isochroneRings} />
+      )}
       {selectedRoutes.map((route) => {
         const isMetro = route.routeType === "metro";
         return (

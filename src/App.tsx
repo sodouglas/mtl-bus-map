@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import type { RouteData, SelectedLocation, NearestStop } from "./types";
+import type { RouteData, SelectedLocation, NearestStop, IsochroneRing } from "./types";
 import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
 import { LocationSearch } from "./components/LocationSearch";
 import { RadiusControl } from "./components/RadiusControl";
 import { distanceToPolyline, haversineDistance } from "./geometry";
+import { computeReachability } from "./reachability";
 
 const DEFAULT_RADIUS = 200;
 
@@ -26,6 +27,9 @@ export default function App() {
   const [radiusExpanded, setRadiusExpanded] = useState(false);
   const [showStops, setShowStops] = useState(false);
   const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
+  const [isochroneRings, setIsochroneRings] = useState<IsochroneRing[] | null>(null);
+  const [showIsochrones, setShowIsochrones] = useState(true);
+  const [isochroneComputing, setIsochroneComputing] = useState(false);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -81,11 +85,24 @@ export default function App() {
 
   function handleLocationSelect(location: SelectedLocation) {
     setSelectedLocation(location);
+    setIsochroneRings(null);
     selectNearbyRoutes(location, radius);
   }
 
   function handleClearLocation() {
     setSelectedLocation(null);
+    setIsochroneRings(null);
+  }
+
+  function handleGenerateIsochrones() {
+    if (!selectedLocation) return;
+    setIsochroneComputing(true);
+    // Use setTimeout to let the UI update before heavy computation
+    setTimeout(() => {
+      const rings = computeReachability(selectedLocation, selectedRoutes, radius);
+      setIsochroneRings(rings);
+      setIsochroneComputing(false);
+    }, 0);
   }
 
   function handleRadiusChange(r: number) {
@@ -183,6 +200,27 @@ export default function App() {
                 </button>
               </div>
               {radiusExpanded && <RadiusControl radius={radius} onChange={handleRadiusChange} />}
+              {selectedLocation && (
+                <div className="isochrone-controls">
+                  <button
+                    className="isochrone-generate-btn"
+                    onClick={handleGenerateIsochrones}
+                    disabled={isochroneComputing}
+                  >
+                    {isochroneComputing ? "Computing…" : isochroneRings ? "Regenerate rings" : "Generate reachability rings"}
+                  </button>
+                  {isochroneRings && (
+                    <label className="isochrone-toggle">
+                      <input
+                        type="checkbox"
+                        checked={showIsochrones}
+                        onChange={() => setShowIsochrones((v) => !v)}
+                      />
+                      Show rings
+                    </label>
+                  )}
+                </div>
+              )}
             </div>
           }
         />
@@ -195,6 +233,8 @@ export default function App() {
           locationRadius={radius}
           nearestStops={nearestStops}
           showStops={showStops}
+          isochroneRings={isochroneRings}
+          showIsochrones={showIsochrones}
         />
       </div>
     </div>

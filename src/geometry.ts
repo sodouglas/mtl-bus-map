@@ -101,6 +101,30 @@ export function sampleArrowPoints(
   return points;
 }
 
+export function destinationPoint(
+  lat: number,
+  lng: number,
+  bearingDeg: number,
+  distanceMeters: number,
+): [number, number] {
+  const φ1 = lat * DEG_TO_RAD;
+  const λ1 = lng * DEG_TO_RAD;
+  const brng = bearingDeg * DEG_TO_RAD;
+  const δ = distanceMeters / EARTH_RADIUS;
+
+  const φ2 = Math.asin(
+    Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(brng),
+  );
+  const λ2 =
+    λ1 +
+    Math.atan2(
+      Math.sin(brng) * Math.sin(δ) * Math.cos(φ1),
+      Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2),
+    );
+
+  return [φ2 / DEG_TO_RAD, λ2 / DEG_TO_RAD];
+}
+
 export function distanceToPolyline(
   lat: number,
   lng: number,

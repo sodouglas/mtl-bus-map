@@ -11,6 +11,12 @@ interface StopData {
   name: string;
   lat: number;
   lng: number;
+  travelTimeFromStart: number;
+}
+
+function parseGtfsTime(str: string): number {
+  const parts = str.split(":");
+  return parseInt(parts[0]) * 3600 + parseInt(parts[1]) * 60 + parseInt(parts[2]);
 }
 
 interface RouteData {
@@ -205,14 +211,15 @@ async function main() {
 
   console.log("Parsing stop_times.txt...");
   const stopTimesRaw = parseCSV(await readFile("stop_times.txt"));
-  // trip_id -> sorted stop_ids
-  const stopsByTrip = new Map<string, { seq: number; stopId: string }[]>();
+  // trip_id -> sorted stop_ids with arrival times
+  const stopsByTrip = new Map<string, { seq: number; stopId: string; arrivalTime: number }[]>();
   for (const st of stopTimesRaw) {
     const tripId = st.trip_id;
     if (!stopsByTrip.has(tripId)) stopsByTrip.set(tripId, []);
     stopsByTrip.get(tripId)!.push({
       seq: parseInt(st.stop_sequence),
       stopId: st.stop_id,
+      arrivalTime: parseGtfsTime(st.arrival_time),
     });
   }
   for (const [, entries] of stopsByTrip) {
@@ -279,11 +286,17 @@ async function main() {
         stopsByTrip.has(trip.trip_id)
       ) {
         const tripStops = stopsByTrip.get(trip.trip_id)!;
+        const firstArrival = tripStops[0]?.arrivalTime ?? 0;
         stops = tripStops
           .map((ts) => {
             const stop = stopsMap.get(ts.stopId);
             if (!stop) return null;
-            return { name: stop.name, lat: roundCoord(stop.lat), lng: roundCoord(stop.lng) };
+            return {
+              name: stop.name,
+              lat: roundCoord(stop.lat),
+              lng: roundCoord(stop.lng),
+              travelTimeFromStart: ts.arrivalTime - firstArrival,
+            };
           })
           .filter((s): s is StopData => s !== null);
         break;

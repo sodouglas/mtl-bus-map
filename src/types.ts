@@ -2,6 +2,12 @@ export interface StopData {
   name: string;
   lat: number;
   lng: number;
+  travelTimeFromStart: number;
+}
+
+export interface IsochroneRing {
+  maxMinutes: number;
+  polygons: [number, number][][];
 }
 
 export interface RouteData {
