@@ -217,45 +217,24 @@ body,
 
 .radius-expand-btn {
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
   border: none;
-  border-radius: 4px;
   background: none;
+  color: #aaa;
+  font-size: 13px;
+  letter-spacing: 1px;
   cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s;
-}
-
-.radius-expand-btn::before {
-  content: "";
-  display: block;
-  width: 6px;
-  height: 6px;
-  border-right: 1.5px solid #999;
-  border-top: 1.5px solid #999;
-  transform: rotate(45deg) translate(-1px, 1px);
-  transition: border-color 0.15s, transform 0.2s;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
 }
 
 .radius-expand-btn:hover {
+  color: #555;
   background: #f0f0f0;
 }
 
-.radius-expand-btn:hover::before {
-  border-color: #555;
-}
-
 .radius-expand-btn--open {
-  background: #eef3ff;
-}
-
-.radius-expand-btn--open::before {
-  border-color: #3A86FF;
-  transform: rotate(135deg) translate(-1px, 1px);
+  color: #555;
 }
 
 /* ── Location Search ── */
@@ -380,44 +359,24 @@ body,
 }
 
 /* ── Radius Control ── */
-@keyframes radius-panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 .radius-control {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 5px;
-  padding: 7px 10px;
-  background: #f0f5ff;
-  border-radius: 6px;
-  border-left: 2px solid #3A86FF;
-  animation: radius-panel-in 0.15s ease;
+  margin-top: 6px;
 }
 
 .radius-control-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #3A86FF;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 12px;
+  color: #888;
   flex-shrink: 0;
 }
 
 .radius-control-slider {
   flex: 1;
   min-width: 0;
-  accent-color: #3A86FF;
+  accent-color: #555;
   cursor: pointer;
-  height: 4px;
 }
 
 .radius-control-number-wrap {
@@ -429,26 +388,23 @@ body,
 
 .radius-control-number {
   width: 46px;
-  padding: 2px 4px;
-  border: none;
-  border-bottom: 1px solid #aac4f0;
-  border-radius: 0;
-  background: transparent;
+  padding: 3px 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
   font-size: 12px;
-  font-weight: 600;
   color: #333;
   text-align: right;
   outline: none;
+  background: #fff;
 }
 
 .radius-control-number:focus {
-  border-bottom-color: #3A86FF;
+  border-color: #999;
 }
 
 .radius-control-unit {
-  font-size: 11px;
-  color: #6b8fc7;
-  font-weight: 500;
+  font-size: 12px;
+  color: #999;
 }
 
 /* ── Route Stop Markers ── */

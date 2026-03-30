@@ -159,7 +159,9 @@ export default function App() {
                   onClick={() => setRadiusExpanded((v) => !v)}
                   title="Toggle search radius"
                   aria-label="Toggle search radius"
-                />
+                >
+                  ···
+                </button>
               </div>
               {radiusExpanded && <RadiusControl radius={radius} onChange={handleRadiusChange} />}
             </div>
