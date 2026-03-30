@@ -5,9 +5,9 @@ import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
 
 const SELECTION_PALETTE = [
-  "#E63946", "#2A9D8F", "#E9C46A", "#F4A261",
-  "#A8DADC", "#457B9D", "#C77DFF", "#06D6A0",
-  "#FF6B6B", "#4ECDC4", "#FF9F1C", "#96CEB4",
+  "#E63946", "#2A9D8F", "#7B2FF7", "#FF006E",
+  "#06D6A0", "#3A86FF", "#FB5607", "#8338EC",
+  "#00BBF9", "#F72585", "#1D3557", "#FF4CC3",
 ];
 
 export default function App() {
@@ -17,7 +17,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/routes-data.json")
+    fetch(`${import.meta.env.BASE_URL}routes-data.json`)
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();

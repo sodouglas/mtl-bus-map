@@ -15,18 +15,31 @@ export function MapView({ selectedRoutes, colorMap }: Props) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {selectedRoutes.map((route) => (
-        <Polyline
-          key={route.id}
-          positions={route.path}
-          pathOptions={{ color: colorMap.get(route.id) ?? route.color, weight: 3, opacity: 0.8 }}
-        >
-          <Tooltip sticky>
-            <strong>{route.routeNumber}</strong>
-            {route.direction ? ` – ${route.direction}` : ""}
-          </Tooltip>
-        </Polyline>
-      ))}
+      {selectedRoutes.map((route) => {
+        const lineColor = colorMap.get(route.id) ?? route.color;
+        return (
+          <Polyline
+            key={`${route.id}-outline`}
+            positions={route.path}
+            pathOptions={{ color: "#222", weight: 7, opacity: 0.6 }}
+          />
+        );
+      })}
+      {selectedRoutes.map((route) => {
+        const lineColor = colorMap.get(route.id) ?? route.color;
+        return (
+          <Polyline
+            key={route.id}
+            positions={route.path}
+            pathOptions={{ color: lineColor, weight: 5, opacity: 1 }}
+          >
+            <Tooltip sticky>
+              <strong>{route.routeNumber}</strong>
+              {route.direction ? ` – ${route.direction}` : ""}
+            </Tooltip>
+          </Polyline>
+        );
+      })}
     </MapContainer>
   );
 }
