@@ -1,3 +1,9 @@
+export interface StopData {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 export interface RouteData {
   id: string;
   routeNumber: string;
@@ -6,4 +12,26 @@ export interface RouteData {
   name: string;
   color: string;
   path: [number, number][];
+  stops: StopData[];
+}
+
+export interface NearestStop {
+  routeNumber: string;
+  stopName: string;
+  lat: number;
+  lng: number;
+  color: string;
+}
+
+export interface GeocodingResult {
+  placeId: string;
+  displayName: string;
+  lat: number;
+  lng: number;
+}
+
+export interface SelectedLocation {
+  displayName: string;
+  lat: number;
+  lng: number;
 }

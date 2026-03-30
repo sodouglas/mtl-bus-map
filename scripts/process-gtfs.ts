@@ -7,6 +7,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const GTFS_URL = "https://www.stm.info/sites/default/files/gtfs/gtfs_stm.zip";
 const OUTPUT_PATH = join(__dirname, "../public/routes-data.json");
 
+interface StopData {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
 interface RouteData {
   id: string;
   routeNumber: string;
@@ -15,6 +21,7 @@ interface RouteData {
   name: string;
   color: string;
   path: [number, number][];
+  stops: StopData[];
 }
 
 function parseCSV(content: string): Record<string, string>[] {
@@ -181,6 +188,45 @@ async function main() {
     shapesSorted.set(id, pts.map((p) => [p.lat, p.lng]));
   }
 
+  console.log("Parsing stops.txt...");
+  const stopsRaw = parseCSV(await readFile("stops.txt"));
+  const stopsMap = new Map<string, { name: string; lat: number; lng: number }>();
+  for (const s of stopsRaw) {
+    stopsMap.set(s.stop_id, {
+      name: s.stop_name,
+      lat: parseFloat(s.stop_lat),
+      lng: parseFloat(s.stop_lon),
+    });
+  }
+  console.log(`Found ${stopsMap.size} stops`);
+
+  console.log("Parsing stop_times.txt...");
+  const stopTimesRaw = parseCSV(await readFile("stop_times.txt"));
+  // trip_id -> sorted stop_ids
+  const stopsByTrip = new Map<string, { seq: number; stopId: string }[]>();
+  for (const st of stopTimesRaw) {
+    const tripId = st.trip_id;
+    if (!stopsByTrip.has(tripId)) stopsByTrip.set(tripId, []);
+    stopsByTrip.get(tripId)!.push({
+      seq: parseInt(st.stop_sequence),
+      stopId: st.stop_id,
+    });
+  }
+  for (const [, entries] of stopsByTrip) {
+    entries.sort((a, b) => a.seq - b.seq);
+  }
+
+  // Build trip_id -> { route_id, direction_id, shape_id } for bus routes
+  const tripInfo = new Map<string, { routeId: string; directionId: string; shapeId: string }>();
+  for (const trip of tripsRaw) {
+    if (!routeMap.has(trip.route_id)) continue;
+    tripInfo.set(trip.trip_id, {
+      routeId: trip.route_id,
+      directionId: trip.direction_id,
+      shapeId: trip.shape_id,
+    });
+  }
+
   console.log("Building route data...");
   const DEFAULT_COLORS = [
     "#009EE0", "#E31837", "#00A550", "#F7A600", "#6D2077",
@@ -220,6 +266,27 @@ async function main() {
     // Get headsign from most common trip for this shape
     const headsign = trips.find((t) => t.shapeId === bestShapeId)?.headsign ?? directionIdStr;
 
+    // Find a representative trip using this shape to get its stops
+    let stops: StopData[] = [];
+    for (const trip of tripsRaw) {
+      if (
+        trip.route_id === routeId &&
+        trip.direction_id === directionIdStr &&
+        trip.shape_id === bestShapeId &&
+        stopsByTrip.has(trip.trip_id)
+      ) {
+        const tripStops = stopsByTrip.get(trip.trip_id)!;
+        stops = tripStops
+          .map((ts) => {
+            const stop = stopsMap.get(ts.stopId);
+            if (!stop) return null;
+            return { name: stop.name, lat: roundCoord(stop.lat), lng: roundCoord(stop.lng) };
+          })
+          .filter((s): s is StopData => s !== null);
+        break;
+      }
+    }
+
     const routeNumber = route.route_short_name ?? routeId;
     const rawColor = route.route_color ? `#${route.route_color}` : null;
     const color = rawColor && rawColor !== "#" ? rawColor : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
@@ -233,6 +300,7 @@ async function main() {
       name: route.route_long_name ?? "",
       color,
       path,
+      stops,
     });
   }
 

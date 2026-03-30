@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
 import type { RouteData } from "../types";
 import { RouteItem } from "./RouteItem";
@@ -8,6 +9,7 @@ interface Props {
   colorMap: Map<string, string>;
   onToggle: (id: string) => void;
   onClearAll: () => void;
+  locationSearch: ReactNode;
 }
 
 export function RouteList({
@@ -16,6 +18,7 @@ export function RouteList({
   colorMap,
   onToggle,
   onClearAll,
+  locationSearch,
 }: Props) {
   const [query, setQuery] = useState("");
 
@@ -40,6 +43,7 @@ export function RouteList({
     <div className="route-list">
       <div className="route-list-header">
         <h2>STM Bus Routes</h2>
+        {locationSearch}
         <div className="route-list-controls">
           <input
             type="search"

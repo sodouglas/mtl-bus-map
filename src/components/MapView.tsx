@@ -1,14 +1,18 @@
 import { MapContainer, TileLayer, Polyline, Tooltip } from "react-leaflet";
-import type { RouteData } from "../types";
+import type { RouteData, SelectedLocation, NearestStop } from "../types";
+import { LocationMarker } from "./LocationMarker";
+import { NearestStopMarkers } from "./NearestStopMarkers";
 
 interface Props {
   selectedRoutes: RouteData[];
   colorMap: Map<string, string>;
+  selectedLocation?: SelectedLocation | null;
+  nearestStops?: NearestStop[];
 }
 
 const MONTREAL: [number, number] = [45.5017, -73.5673];
 
-export function MapView({ selectedRoutes, colorMap }: Props) {
+export function MapView({ selectedRoutes, colorMap, selectedLocation, nearestStops = [] }: Props) {
   return (
     <MapContainer center={MONTREAL} zoom={12} className="map-container">
       <TileLayer
@@ -39,6 +43,8 @@ export function MapView({ selectedRoutes, colorMap }: Props) {
           </Polyline>
         );
       })}
+      {selectedLocation && <LocationMarker location={selectedLocation} />}
+      {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
     </MapContainer>
   );
 }
