@@ -319,6 +319,53 @@ body,
   white-space: nowrap;
 }
 
+/* ── Radius Control ── */
+.radius-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.radius-control-label {
+  font-size: 12px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.radius-control-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: #3A86FF;
+  cursor: pointer;
+}
+
+.radius-control-number-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.radius-control-number {
+  width: 52px;
+  padding: 3px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: right;
+  outline: none;
+}
+
+.radius-control-number:focus {
+  border-color: #3A86FF;
+}
+
+.radius-control-unit {
+  font-size: 12px;
+  color: #888;
+}
+
 /* ── Route Stop Markers ── */
 .route-stop-icon {
   width: 8px;

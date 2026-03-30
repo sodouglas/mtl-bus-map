@@ -9,13 +9,14 @@ interface Props {
   selectedRoutes: RouteData[];
   colorMap: Map<string, string>;
   selectedLocation?: SelectedLocation | null;
+  locationRadius?: number;
   nearestStops?: NearestStop[];
   showStops?: boolean;
 }
 
 const MONTREAL: [number, number] = [45.5017, -73.5673];
 
-export function MapView({ selectedRoutes, colorMap, selectedLocation, nearestStops = [], showStops }: Props) {
+export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRadius = 200, nearestStops = [], showStops }: Props) {
   return (
     <MapContainer center={MONTREAL} zoom={12} className="map-container">
       <TileLayer
@@ -48,7 +49,7 @@ export function MapView({ selectedRoutes, colorMap, selectedLocation, nearestSto
       })}
       <RouteArrows selectedRoutes={selectedRoutes} colorMap={colorMap} />
       {showStops && <RouteStopMarkers selectedRoutes={selectedRoutes} colorMap={colorMap} />}
-      {selectedLocation && <LocationMarker location={selectedLocation} />}
+      {selectedLocation && <LocationMarker location={selectedLocation} radius={locationRadius} />}
       {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
     </MapContainer>
   );
