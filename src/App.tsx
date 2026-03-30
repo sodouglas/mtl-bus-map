@@ -23,6 +23,7 @@ export default function App() {
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null);
   const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  const [radiusExpanded, setRadiusExpanded] = useState(false);
   const [showStops, setShowStops] = useState(false);
 
   useEffect(() => {
@@ -145,15 +146,25 @@ export default function App() {
           showStops={showStops}
           onToggleShowStops={() => setShowStops((s) => !s)}
           locationSearch={
-            <>
-              <LocationSearch
-                onSelect={handleLocationSelect}
-                onClear={handleClearLocation}
-                hasLocation={selectedLocation !== null}
-                locationName={selectedLocation?.displayName ?? ""}
-              />
-              <RadiusControl radius={radius} onChange={handleRadiusChange} />
-            </>
+            <div className="location-section">
+              <div className="location-section-row">
+                <LocationSearch
+                  onSelect={handleLocationSelect}
+                  onClear={handleClearLocation}
+                  hasLocation={selectedLocation !== null}
+                  locationName={selectedLocation?.displayName ?? ""}
+                />
+                <button
+                  className={`radius-expand-btn${radiusExpanded ? " radius-expand-btn--open" : ""}`}
+                  onClick={() => setRadiusExpanded((v) => !v)}
+                  title="Toggle search radius"
+                  aria-label="Toggle search radius"
+                >
+                  ›
+                </button>
+              </div>
+              {radiusExpanded && <RadiusControl radius={radius} onChange={handleRadiusChange} />}
+            </div>
           }
         />
       </aside>
