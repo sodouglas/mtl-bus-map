@@ -16,7 +16,6 @@ export function MapView({ selectedRoutes, colorMap }: Props) {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {selectedRoutes.map((route) => {
-        const lineColor = colorMap.get(route.id) ?? route.color;
         return (
           <Polyline
             key={`${route.id}-outline`}
