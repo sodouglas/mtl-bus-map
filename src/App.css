@@ -198,6 +198,45 @@ body,
   color: #c00;
 }
 
+/* ── Location Section ── */
+.location-section {
+  margin-bottom: 10px;
+}
+
+.location-section-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.location-section-row .location-search {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.radius-expand-btn {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: #aaa;
+  font-size: 13px;
+  letter-spacing: 1px;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.radius-expand-btn:hover {
+  color: #555;
+  background: #f0f0f0;
+}
+
+.radius-expand-btn--open {
+  color: #555;
+}
+
 /* ── Location Search ── */
 .location-search {
   position: relative;
@@ -214,7 +253,7 @@ body,
 }
 
 .location-search-input:focus {
-  border-color: #3A86FF;
+  border-color: #3a86ff;
 }
 
 .location-search-loading {
@@ -261,7 +300,7 @@ body,
   align-items: center;
   gap: 6px;
   padding: 5px 10px;
-  border: 1px solid #3A86FF;
+  border: 1px solid #3a86ff;
   border-radius: 16px;
   background: #f0f6ff;
   font-size: 12px;
@@ -294,7 +333,7 @@ body,
 .location-marker-icon {
   width: 16px;
   height: 16px;
-  background: #3A86FF;
+  background: #3a86ff;
   border: 2px solid #fff;
   border-radius: 50%;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -317,6 +356,55 @@ body,
 .show-stops-toggle label {
   cursor: pointer;
   white-space: nowrap;
+}
+
+/* ── Radius Control ── */
+.radius-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.radius-control-label {
+  font-size: 12px;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.radius-control-slider {
+  flex: 1;
+  min-width: 0;
+  accent-color: #555;
+  cursor: pointer;
+}
+
+.radius-control-number-wrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.radius-control-number {
+  width: 54px;
+  padding: 3px 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #333;
+  text-align: left;
+  outline: none;
+  background: #fff;
+}
+
+.radius-control-number:focus {
+  border-color: #999;
+}
+
+.radius-control-unit {
+  font-size: 12px;
+  color: #999;
 }
 
 /* ── Route Stop Markers ── */

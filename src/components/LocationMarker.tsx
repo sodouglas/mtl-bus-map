@@ -10,15 +10,16 @@ const locationIcon = L.divIcon({
 
 interface Props {
   location: SelectedLocation;
+  radius: number;
 }
 
-export function LocationMarker({ location }: Props) {
+export function LocationMarker({ location, radius }: Props) {
   return (
     <>
       <Marker position={[location.lat, location.lng]} icon={locationIcon} />
       <Circle
         center={[location.lat, location.lng]}
-        radius={200}
+        radius={radius}
         pathOptions={{
           color: "#3A86FF",
           fillColor: "#3A86FF",

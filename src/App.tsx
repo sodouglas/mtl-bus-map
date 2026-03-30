@@ -4,7 +4,10 @@ import type { RouteData, SelectedLocation, NearestStop } from "./types";
 import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
 import { LocationSearch } from "./components/LocationSearch";
+import { RadiusControl } from "./components/RadiusControl";
 import { distanceToPolyline, haversineDistance } from "./geometry";
+
+const DEFAULT_RADIUS = 200;
 
 const SELECTION_PALETTE = [
   "#E63946", "#2A9D8F", "#7B2FF7", "#FF006E",
@@ -19,6 +22,8 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [selectedLocation, setSelectedLocation] =
     useState<SelectedLocation | null>(null);
+  const [radius, setRadius] = useState(DEFAULT_RADIUS);
+  const [radiusExpanded, setRadiusExpanded] = useState(false);
   const [showStops, setShowStops] = useState(false);
 
   useEffect(() => {
@@ -54,25 +59,27 @@ export default function App() {
     setSelectedLocation(null);
   }
 
+  function selectNearbyRoutes(location: SelectedLocation, r: number) {
+    const nearbyIds = routes
+      .filter((route) => distanceToPolyline(location.lat, location.lng, route.path) <= r)
+      .map((route) => route.id);
+    setSelectedIds(new Set(nearbyIds));
+  }
+
   function handleLocationSelect(location: SelectedLocation) {
     setSelectedLocation(location);
-    const nearbyIds: string[] = [];
-    for (const route of routes) {
-      if (distanceToPolyline(location.lat, location.lng, route.path) <= 200) {
-        nearbyIds.push(route.id);
-      }
-    }
-    if (nearbyIds.length > 0) {
-      setSelectedIds((prev) => {
-        const next = new Set(prev);
-        for (const id of nearbyIds) next.add(id);
-        return next;
-      });
-    }
+    selectNearbyRoutes(location, radius);
   }
 
   function handleClearLocation() {
     setSelectedLocation(null);
+  }
+
+  function handleRadiusChange(r: number) {
+    setRadius(r);
+    if (selectedLocation) {
+      selectNearbyRoutes(selectedLocation, r);
+    }
   }
 
   if (loading) {
@@ -139,12 +146,25 @@ export default function App() {
           showStops={showStops}
           onToggleShowStops={() => setShowStops((s) => !s)}
           locationSearch={
-            <LocationSearch
-              onSelect={handleLocationSelect}
-              onClear={handleClearLocation}
-              hasLocation={selectedLocation !== null}
-              locationName={selectedLocation?.displayName ?? ""}
-            />
+            <div className="location-section">
+              <div className="location-section-row">
+                <LocationSearch
+                  onSelect={handleLocationSelect}
+                  onClear={handleClearLocation}
+                  hasLocation={selectedLocation !== null}
+                  locationName={selectedLocation?.displayName ?? ""}
+                />
+                <button
+                  className={`radius-expand-btn${radiusExpanded ? " radius-expand-btn--open" : ""}`}
+                  onClick={() => setRadiusExpanded((v) => !v)}
+                  title="Toggle search radius"
+                  aria-label="Toggle search radius"
+                >
+                  ···
+                </button>
+              </div>
+              {radiusExpanded && <RadiusControl radius={radius} onChange={handleRadiusChange} />}
+            </div>
           }
         />
       </aside>
@@ -153,6 +173,7 @@ export default function App() {
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
           selectedLocation={selectedLocation}
+          locationRadius={radius}
           nearestStops={nearestStops}
           showStops={showStops}
         />
