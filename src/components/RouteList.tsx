@@ -10,6 +10,8 @@ interface Props {
   onToggle: (id: string) => void;
   onClearAll: () => void;
   locationSearch: ReactNode;
+  showStops: boolean;
+  onToggleShowStops: () => void;
 }
 
 export function RouteList({
@@ -19,6 +21,8 @@ export function RouteList({
   onToggle,
   onClearAll,
   locationSearch,
+  showStops,
+  onToggleShowStops,
 }: Props) {
   const [query, setQuery] = useState("");
 
@@ -57,6 +61,17 @@ export function RouteList({
               <button className="route-list-meta-button" onClick={onClearAll}>
                 Clear all
               </button>
+            )}
+            {selectedIds.size > 0 && (
+              <span className="show-stops-toggle">
+                <input
+                  type="checkbox"
+                  id="show-stops"
+                  checked={showStops}
+                  onChange={onToggleShowStops}
+                />
+                <label htmlFor="show-stops">Show stops</label>
+              </span>
             )}
           </div>
         </div>
