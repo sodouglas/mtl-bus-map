@@ -24,21 +24,23 @@ export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRa
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       {selectedRoutes.map((route) => {
+        const isMetro = route.routeType === "metro";
         return (
           <Polyline
             key={`${route.id}-outline`}
             positions={route.path}
-            pathOptions={{ color: "#222", weight: 7, opacity: 0.6 }}
+            pathOptions={{ color: "#222", weight: isMetro ? 10 : 7, opacity: 0.6 }}
           />
         );
       })}
       {selectedRoutes.map((route) => {
         const lineColor = colorMap.get(route.id) ?? route.color;
+        const isMetro = route.routeType === "metro";
         return (
           <Polyline
             key={route.id}
             positions={route.path}
-            pathOptions={{ color: lineColor, weight: 5, opacity: 1 }}
+            pathOptions={{ color: lineColor, weight: isMetro ? 7 : 5, opacity: 1 }}
           >
             <Tooltip sticky>
               <strong>{route.routeNumber}</strong>

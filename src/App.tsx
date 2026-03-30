@@ -25,6 +25,7 @@ export default function App() {
   const [radius, setRadius] = useState(DEFAULT_RADIUS);
   const [radiusExpanded, setRadiusExpanded] = useState(false);
   const [showStops, setShowStops] = useState(false);
+  const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -49,6 +50,18 @@ export default function App() {
         next.delete(id);
       } else {
         next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function handleToggleMode(mode: string) {
+    setEnabledModes((prev) => {
+      const next = new Set(prev);
+      if (next.has(mode)) {
+        next.delete(mode);
+      } else {
+        next.add(mode);
       }
       return next;
     });
@@ -96,14 +109,18 @@ export default function App() {
     );
   }
 
+  const visibleRoutes = routes.filter((r) => enabledModes.has(r.routeType));
+
   const colorMap = new Map<string, string>();
   let paletteIndex = 0;
   for (const id of selectedIds) {
+    const route = routes.find((r) => r.id === id);
+    if (route?.routeType === "metro") continue;
     colorMap.set(id, SELECTION_PALETTE[paletteIndex % SELECTION_PALETTE.length]);
     paletteIndex++;
   }
 
-  const selectedRoutes = routes.filter((r) => selectedIds.has(r.id));
+  const selectedRoutes = visibleRoutes.filter((r) => selectedIds.has(r.id));
 
   // For each nearby route, find the closest bus stop to the selected location
   const nearestStops: NearestStop[] = [];
@@ -138,11 +155,13 @@ export default function App() {
     <div className="app">
       <aside className="sidebar">
         <RouteList
-          routes={routes}
+          routes={visibleRoutes}
           selectedIds={selectedIds}
           colorMap={colorMap}
           onToggle={handleToggle}
           onClearAll={handleClearAll}
+          enabledModes={enabledModes}
+          onToggleMode={handleToggleMode}
           showStops={showStops}
           onToggleShowStops={() => setShowStops((s) => !s)}
           locationSearch={
