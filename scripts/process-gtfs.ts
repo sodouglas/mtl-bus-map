@@ -321,9 +321,13 @@ async function main() {
       id: isMetro ? routeId : `${routeId}-${directionId}`,
       routeNumber,
       direction: isMetro
-        ? [...(metroTerminals.get(routeId) ?? [])]
-            .map((h) => h.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
-            .join(" / ")
+        ? stops.length >= 2
+          ? [stops[0].name, stops[stops.length - 1].name]
+              .map((n) => n.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+              .join(" / ")
+          : [...(metroTerminals.get(routeId) ?? [])]
+              .map((h) => h.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+              .join(" / ")
         : headsign,
       directionId: isMetro ? 0 : directionId,
       name: route.route_long_name ?? "",
