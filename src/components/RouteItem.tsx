@@ -12,7 +12,11 @@ export function RouteItem({ route, selected, colorOverride, onToggle }: Props) {
   return (
     <label
       className={`route-item${selected ? " route-item--selected" : ""}`}
-      style={colorOverride ? ({ "--item-color": colorOverride } as React.CSSProperties) : undefined}
+      style={
+        colorOverride
+          ? ({ "--item-color": colorOverride } as React.CSSProperties)
+          : undefined
+      }
     >
       <input
         type="checkbox"
@@ -22,8 +26,10 @@ export function RouteItem({ route, selected, colorOverride, onToggle }: Props) {
       <span className="route-color-dot" style={{ backgroundColor: dotColor }} />
       <span className="route-label">
         <strong>{route.routeNumber}</strong>
-        {route.direction ? ` – ${route.direction}` : ""}
-        {route.name ? <small> ({route.name})</small> : null}
+        {route.direction ? ` - ${route.direction}` : ""}
+        {route.name && route.routeType !== "metro" ? (
+          <small> ({route.name})</small>
+        ) : null}
       </span>
     </label>
   );
