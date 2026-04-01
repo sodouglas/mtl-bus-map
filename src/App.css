@@ -48,6 +48,10 @@ body,
   height: 100%;
 }
 
+.map-wrapper--pin-mode .leaflet-container {
+  cursor: crosshair !important;
+}
+
 .map-container {
   width: 100%;
   height: 100%;
@@ -339,6 +343,13 @@ body,
   font-size: 13px;
 }
 
+/* ── No Connecting Routes ── */
+.no-connecting-routes {
+  padding: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
 /* ── Show Stops Toggle (custom) ── */
 .show-stops-toggle {
   display: flex;
@@ -411,44 +422,114 @@ body,
   color: #c00;
 }
 
-/* ── Location Section ── */
-.location-section {
-  margin-bottom: 6px;
+/* ── Location Search Pair ── */
+.lsp {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 8px;
 }
 
-.location-section-row {
+.lsp-chevron {
+  flex-shrink: 0;
+  width: 20px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  color: var(--text-tertiary);
+  transition: color 0.12s ease;
+}
+
+.lsp-chevron:hover {
+  color: var(--text-secondary);
+}
+
+.lsp-chevron--open {
+  transform: rotate(90deg);
+  color: var(--text-secondary);
+}
+
+.lsp-fields {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lsp-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.lsp-input-row {
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
-.location-section-row .location-search {
+.lsp-input-row .location-search {
   flex: 1;
   min-width: 0;
   margin-bottom: 0;
 }
 
-.radius-expand-btn {
+/* ── Radius Button (inside lsp) ── */
+.lsp-radius-btn {
   flex-shrink: 0;
-  border: none;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid transparent;
   background: none;
   color: var(--text-tertiary);
-  font-size: 13px;
-  letter-spacing: 1px;
   cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  line-height: 1;
-  transition: background 0.12s ease, color 0.12s ease;
+  border-radius: 8px;
+  transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
-.radius-expand-btn:hover {
+.lsp-radius-btn:hover {
   color: var(--text-secondary);
   background: var(--surface-hover);
 }
 
-.radius-expand-btn--open {
+.lsp-radius-btn--open {
   color: var(--text-secondary);
+  background: var(--surface-hover);
+}
+
+/* ── Pin Location Button ── */
+.pin-location-btn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid transparent;
+  background: none;
+  font-size: 14px;
+  cursor: pointer;
+  border-radius: 8px;
+  line-height: 1;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.pin-location-btn:hover {
+  background: var(--surface-hover);
+}
+
+.pin-location-btn--active {
+  background: rgba(58, 134, 255, 0.08);
+  border-color: rgba(58, 134, 255, 0.3);
 }
 
 /* ── Location Search ── */
@@ -459,17 +540,17 @@ body,
 
 .location-search-input {
   width: 100%;
-  padding: 8px 10px 8px 30px;
+  padding: 7px 10px 7px 30px;
   border: 1.5px solid transparent;
-  border-radius: 10px;
+  border-radius: 8px;
   font-family: inherit;
   font-size: 13px;
   color: var(--text-primary);
   background-color: var(--input-bg);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M12 2C7.6 2 4 5.4 4 9.5C4 14.28 12 22 12 22S20 14.28 20 9.5C20 5.4 16.4 2 12 2Z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M12 2C7.6 2 4 5.4 4 9.5C4 14.28 12 22 12 22S20 14.28 20 9.5C20 5.4 16.4 2 12 2Z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: 9px center;
-  background-size: 14px;
+  background-size: 13px;
   outline: none;
   transition: border-color 0.15s ease, background-color 0.15s ease;
 }
@@ -484,7 +565,7 @@ body,
 }
 
 .location-search-loading {
-  padding: 4px 0;
+  padding: 3px 0;
   font-size: 11px;
   color: var(--text-tertiary);
 }
@@ -502,7 +583,7 @@ body,
   border-radius: 10px;
   box-shadow: var(--panel-shadow);
   list-style: none;
-  max-height: 220px;
+  max-height: 200px;
   overflow-y: auto;
   margin-top: 4px;
 }
@@ -510,7 +591,7 @@ body,
 .location-search-dropdown-item {
   display: block;
   width: 100%;
-  padding: 8px 12px;
+  padding: 7px 10px;
   border: none;
   background: none;
   text-align: left;
@@ -538,10 +619,10 @@ body,
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 10px;
+  padding: 5px 10px;
   border: none;
-  border-radius: 10px;
-  background: rgba(58, 134, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(58, 134, 255, 0.07);
   font-size: 12px;
   font-weight: 500;
   color: var(--focus-ring);
@@ -572,26 +653,16 @@ body,
   background: var(--surface-hover);
 }
 
-/* ── Location Marker ── */
-.location-marker-icon {
-  width: 16px;
-  height: 16px;
-  background: var(--focus-ring);
-  border: 2px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-}
-
 /* ── Radius Control ── */
 .radius-control {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .radius-control-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-tertiary);
   flex-shrink: 0;
 }
@@ -632,6 +703,81 @@ body,
 .radius-control-unit {
   font-size: 12px;
   color: var(--text-tertiary);
+}
+
+/* ── Map Center Pin (pin mode overlay) ── */
+.map-center-pin-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.map-center-pin-icon {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.map-center-pin-controls {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: var(--panel-shadow);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.map-center-pin-confirm {
+  border: none;
+  background: none;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--focus-ring);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.map-center-pin-confirm:hover {
+  background: rgba(58, 134, 255, 0.06);
+}
+
+.map-center-pin-sep {
+  color: var(--panel-border);
+  font-size: 16px;
+  user-select: none;
+}
+
+.map-center-pin-cancel {
+  border: none;
+  background: none;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  line-height: 1;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.map-center-pin-cancel:hover {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
 }
 
 /* ── Route Stop Markers ── */
@@ -703,7 +849,7 @@ body,
   }
 
   .location-search-input {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M12 2C7.6 2 4 5.4 4 9.5C4 14.28 12 22 12 22S20 14.28 20 9.5C20 5.4 16.4 2 12 2Z'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M12 2C7.6 2 4 5.4 4 9.5C4 14.28 12 22 12 22S20 14.28 20 9.5C20 5.4 16.4 2 12 2Z'/%3E%3C/svg%3E");
   }
 
   .tab-search input[type="search"] {
@@ -725,6 +871,15 @@ body,
 
   .route-list-items::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
+  }
+
+  .map-center-pin-confirm:hover {
+    background: rgba(58, 134, 255, 0.1);
+  }
+
+  .pin-location-btn--active {
+    background: rgba(58, 134, 255, 0.12);
+    border-color: rgba(58, 134, 255, 0.25);
   }
 
   .loading-overlay {

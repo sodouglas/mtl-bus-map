@@ -3,9 +3,8 @@ import "./App.css";
 import type { RouteData, SelectedLocation, NearestStop } from "./types";
 import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
-import { LocationSearch } from "./components/LocationSearch";
-import { RadiusControl } from "./components/RadiusControl";
-import { distanceToPolyline, haversineDistance } from "./geometry";
+import { LocationSearchPair } from "./components/LocationSearchPair";
+import { distanceToPolyline, findClosestStop } from "./geometry";
 
 const DEFAULT_RADIUS = 200;
 
@@ -20,13 +19,15 @@ export default function App() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedLocation, setSelectedLocation] =
-    useState<SelectedLocation | null>(null);
-  const [radius, setRadius] = useState(DEFAULT_RADIUS);
-  const [radiusExpanded, setRadiusExpanded] = useState(false);
+  const [origin, setOrigin] = useState<SelectedLocation | null>(null);
+  const [destination, setDestination] = useState<SelectedLocation | null>(null);
+  const [originRadius, setOriginRadius] = useState(DEFAULT_RADIUS);
+  const [destinationRadius, setDestinationRadius] = useState(DEFAULT_RADIUS);
   const [showStops, setShowStops] = useState(false);
   const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [pinModeActive, setPinModeActive] = useState(false);
+  const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -43,6 +44,56 @@ export default function App() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (!pinModeActive) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setPinModeActive(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pinModeActive]);
+
+  function recomputeSelection(
+    orig: SelectedLocation | null,
+    dest: SelectedLocation | null,
+    origRadius: number,
+    destRadius: number,
+  ) {
+    if (!orig && !dest) {
+      setSelectedIds(new Set());
+      return;
+    }
+
+    let matchingIds: Set<string>;
+
+    if (orig && dest) {
+      const nearOrigin = new Set(
+        routes
+          .filter((r) => distanceToPolyline(orig.lat, orig.lng, r.path) <= origRadius)
+          .map((r) => r.id),
+      );
+      matchingIds = new Set(
+        routes
+          .filter(
+            (r) =>
+              nearOrigin.has(r.id) &&
+              distanceToPolyline(dest.lat, dest.lng, r.path) <= destRadius,
+          )
+          .map((r) => r.id),
+      );
+    } else {
+      const loc = orig ?? dest!;
+      const rad = orig ? origRadius : destRadius;
+      matchingIds = new Set(
+        routes
+          .filter((r) => distanceToPolyline(loc.lat, loc.lng, r.path) <= rad)
+          .map((r) => r.id),
+      );
+    }
+
+    setSelectedIds(matchingIds);
+  }
 
   function handleToggle(id: string) {
     setSelectedIds((prev) => {
@@ -70,30 +121,53 @@ export default function App() {
 
   function handleClearAll() {
     setSelectedIds(new Set());
-    setSelectedLocation(null);
+    setOrigin(null);
+    setDestination(null);
   }
 
-  function selectNearbyRoutes(location: SelectedLocation, r: number) {
-    const nearbyIds = routes
-      .filter((route) => distanceToPolyline(location.lat, location.lng, route.path) <= r)
-      .map((route) => route.id);
-    setSelectedIds(new Set(nearbyIds));
+  function handleOriginSelect(location: SelectedLocation) {
+    setOrigin(location);
+    recomputeSelection(location, destination, originRadius, destinationRadius);
+    setPinModeActive(false);
   }
 
-  function handleLocationSelect(location: SelectedLocation) {
-    setSelectedLocation(location);
-    selectNearbyRoutes(location, radius);
+  function handleOriginClear() {
+    setOrigin(null);
+    recomputeSelection(null, destination, originRadius, destinationRadius);
   }
 
-  function handleClearLocation() {
-    setSelectedLocation(null);
+  function handleDestinationSelect(location: SelectedLocation) {
+    setDestination(location);
+    recomputeSelection(origin, location, originRadius, destinationRadius);
+    setPinModeActive(false);
   }
 
-  function handleRadiusChange(r: number) {
-    setRadius(r);
-    if (selectedLocation) {
-      selectNearbyRoutes(selectedLocation, r);
+  function handleDestinationClear() {
+    setDestination(null);
+    recomputeSelection(origin, null, originRadius, destinationRadius);
+  }
+
+  function handleOriginRadiusChange(r: number) {
+    setOriginRadius(r);
+    recomputeSelection(origin, destination, r, destinationRadius);
+  }
+
+  function handleDestinationRadiusChange(r: number) {
+    setDestinationRadius(r);
+    recomputeSelection(origin, destination, originRadius, r);
+  }
+
+  function handlePinConfirm(lat: number, lng: number) {
+    const location: SelectedLocation = { displayName: "Pinned location", lat, lng };
+    if (pinTarget === "destination") {
+      handleDestinationSelect(location);
+    } else {
+      handleOriginSelect(location);
     }
+  }
+
+  function handlePinCancel() {
+    setPinModeActive(false);
   }
 
   if (loading) {
@@ -122,46 +196,56 @@ export default function App() {
   }
 
   const selectedRoutes = visibleRoutes.filter((r) => selectedIds.has(r.id));
+  const hasBothEndpoints = origin !== null && destination !== null;
 
-  // For each nearby route, find the closest bus stop to the selected location
   const nearestStops: NearestStop[] = [];
-  if (selectedLocation) {
-    for (const route of selectedRoutes) {
-      if (!route.stops || route.stops.length === 0) continue;
-      let bestDist = Infinity;
-      let bestStop = route.stops[0];
-      for (const stop of route.stops) {
-        const d = haversineDistance(
-          selectedLocation.lat,
-          selectedLocation.lng,
-          stop.lat,
-          stop.lng,
-        );
-        if (d < bestDist) {
-          bestDist = d;
-          bestStop = stop;
-        }
-      }
+  for (const route of selectedRoutes) {
+    if (!route.stops || route.stops.length === 0) continue;
+    const routeColor = colorMap.get(route.id) ?? route.color;
+
+    if (origin) {
+      const idx = findClosestStop(origin.lat, origin.lng, route.stops);
+      const stop = route.stops[idx];
       nearestStops.push({
         routeNumber: route.routeNumber,
-        stopName: bestStop.name,
-        lat: bestStop.lat,
-        lng: bestStop.lng,
-        color: colorMap.get(route.id) ?? route.color,
+        stopName: stop.name,
+        lat: stop.lat,
+        lng: stop.lng,
+        color: routeColor,
+        endpoint: "origin",
+      });
+    }
+
+    if (destination) {
+      const idx = findClosestStop(destination.lat, destination.lng, route.stops);
+      const stop = route.stops[idx];
+      nearestStops.push({
+        routeNumber: route.routeNumber,
+        stopName: stop.name,
+        lat: stop.lat,
+        lng: stop.lng,
+        color: routeColor,
+        endpoint: "destination",
       });
     }
   }
 
   return (
     <div className="app">
-      <div className="map-wrapper">
+      <div className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}>
         <MapView
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
-          selectedLocation={selectedLocation}
-          locationRadius={radius}
+          origin={origin}
+          destination={destination}
+          originRadius={originRadius}
+          destinationRadius={destinationRadius}
           nearestStops={nearestStops}
           showStops={showStops}
+          pinModeActive={pinModeActive}
+          pinStyle={window.innerWidth < 768 ? "center" : "click"}
+          onPinConfirm={handlePinConfirm}
+          onPinCancel={handlePinCancel}
         />
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--collapsed"}`}>
@@ -175,26 +259,31 @@ export default function App() {
           onToggleMode={handleToggleMode}
           showStops={showStops}
           onToggleShowStops={() => setShowStops((s) => !s)}
+          hasBothEndpoints={hasBothEndpoints}
           locationSearch={
-            <div className="location-section">
-              <div className="location-section-row">
-                <LocationSearch
-                  onSelect={handleLocationSelect}
-                  onClear={handleClearLocation}
-                  hasLocation={selectedLocation !== null}
-                  locationName={selectedLocation?.displayName ?? ""}
-                />
-                <button
-                  className={`radius-expand-btn${radiusExpanded ? " radius-expand-btn--open" : ""}`}
-                  onClick={() => setRadiusExpanded((v) => !v)}
-                  title="Toggle search radius"
-                  aria-label="Toggle search radius"
-                >
-                  ···
-                </button>
-              </div>
-              {radiusExpanded && <RadiusControl radius={radius} onChange={handleRadiusChange} />}
-            </div>
+            <LocationSearchPair
+              origin={origin}
+              destination={destination}
+              originRadius={originRadius}
+              destinationRadius={destinationRadius}
+              onOriginSelect={handleOriginSelect}
+              onOriginClear={handleOriginClear}
+              onDestinationSelect={handleDestinationSelect}
+              onDestinationClear={handleDestinationClear}
+              onOriginRadiusChange={handleOriginRadiusChange}
+              onDestinationRadiusChange={handleDestinationRadiusChange}
+              pinModeActive={pinModeActive}
+              pinTarget={pinTarget}
+              onPinClick={(target) => {
+                if (target === null) {
+                  setPinModeActive(false);
+                } else {
+                  setPinTarget(target);
+                  setPinModeActive(true);
+                  if (window.innerWidth < 768) setSidebarOpen(false);
+                }
+              }}
+            />
           }
         />
       </aside>

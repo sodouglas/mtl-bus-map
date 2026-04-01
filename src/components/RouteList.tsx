@@ -14,6 +14,7 @@ interface Props {
   locationSearch: ReactNode;
   showStops: boolean;
   onToggleShowStops: () => void;
+  hasBothEndpoints?: boolean;
 }
 
 export function RouteList({
@@ -25,6 +26,7 @@ export function RouteList({
   locationSearch,
   showStops,
   onToggleShowStops,
+  hasBothEndpoints = false,
 }: Props) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"metro" | "bus">("metro");
@@ -54,7 +56,11 @@ export function RouteList({
       <div className="route-list-header">
         {locationSearch}
         <div className="route-list-meta">
-          <span>{selectedIds.size} selected</span>
+          <span>
+            {hasBothEndpoints
+              ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
+              : `${selectedIds.size} selected`}
+          </span>
           {selectedIds.size > 0 && (
             <button className="route-list-meta-button" onClick={onClearAll}>
               Clear
@@ -73,6 +79,9 @@ export function RouteList({
             </label>
           )}
         </div>
+        {hasBothEndpoints && selectedIds.size === 0 && (
+          <p className="no-connecting-routes">No direct routes found between these locations.</p>
+        )}
       </div>
       <div className="tab-bar">
         <button
