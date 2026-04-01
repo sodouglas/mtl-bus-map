@@ -8,15 +8,28 @@ import { RouteStopMarkers } from "./RouteStopMarkers";
 interface Props {
   selectedRoutes: RouteData[];
   colorMap: Map<string, string>;
-  selectedLocation?: SelectedLocation | null;
-  locationRadius?: number;
+  origin?: SelectedLocation | null;
+  destination?: SelectedLocation | null;
+  originRadius?: number;
+  destinationRadius?: number;
   nearestStops?: NearestStop[];
   showStops?: boolean;
 }
 
 const MONTREAL: [number, number] = [45.5017, -73.5673];
+const ORIGIN_COLOR = "#3A86FF";
+const DESTINATION_COLOR = "#E63946";
 
-export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRadius = 200, nearestStops = [], showStops }: Props) {
+export function MapView({
+  selectedRoutes,
+  colorMap,
+  origin,
+  destination,
+  originRadius = 200,
+  destinationRadius = 200,
+  nearestStops = [],
+  showStops,
+}: Props) {
   return (
     <MapContainer center={MONTREAL} zoom={12} className="map-container" zoomControl={false}>
       <ZoomControl position="topright" />
@@ -52,7 +65,8 @@ export function MapView({ selectedRoutes, colorMap, selectedLocation, locationRa
       })}
       <RouteArrows selectedRoutes={selectedRoutes} colorMap={colorMap} />
       {showStops && <RouteStopMarkers selectedRoutes={selectedRoutes} colorMap={colorMap} />}
-      {selectedLocation && <LocationMarker location={selectedLocation} radius={locationRadius} />}
+      {origin && <LocationMarker location={origin} radius={originRadius} color={ORIGIN_COLOR} />}
+      {destination && <LocationMarker location={destination} radius={destinationRadius} color={DESTINATION_COLOR} />}
       {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
     </MapContainer>
   );

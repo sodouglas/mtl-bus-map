@@ -101,6 +101,23 @@ export function sampleArrowPoints(
   return points;
 }
 
+export function findClosestStop(
+  lat: number,
+  lng: number,
+  stops: { lat: number; lng: number }[],
+): number {
+  let bestIndex = 0;
+  let bestDist = Infinity;
+  for (let i = 0; i < stops.length; i++) {
+    const d = haversineDistance(lat, lng, stops[i].lat, stops[i].lng);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+  return bestIndex;
+}
+
 export function distanceToPolyline(
   lat: number,
   lng: number,

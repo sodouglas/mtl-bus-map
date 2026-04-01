@@ -335,6 +335,36 @@ body,
   color: #c00;
 }
 
+/* ── Location Pair ── */
+.location-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.location-pair-row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.location-pair-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  padding-left: 2px;
+}
+
+/* ── No Connecting Routes ── */
+.no-connecting-routes {
+  padding: 10px 0 2px;
+  font-size: 12px;
+  color: #c00;
+}
+
 /* ── Location Section ── */
 .location-section {
   margin-bottom: 10px;
@@ -467,14 +497,7 @@ body,
 }
 
 /* ── Location Marker ── */
-.location-marker-icon {
-  width: 16px;
-  height: 16px;
-  background: #3a86ff;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-}
+/* Marker styles are inline via L.divIcon for dynamic color support */
 
 /* ── Show Stops Toggle ── */
 .show-stops-toggle {
