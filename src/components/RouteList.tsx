@@ -151,18 +151,30 @@ export function RouteList({
         )}
       </div>
       <div className="tab-bar">
-        <button
-          className={`tab${activeTab === "metro" ? " tab--active" : ""}`}
-          onClick={() => setActiveTab("metro")}
-        >
-          Metro
-        </button>
-        <button
-          className={`tab${activeTab === "bus" ? " tab--active" : ""}`}
-          onClick={() => setActiveTab("bus")}
-        >
-          Bus
-        </button>
+        <div className="tab-bar-tabs">
+          <button
+            className={`tab${activeTab === "metro" ? " tab--active" : ""}`}
+            onClick={() => setActiveTab("metro")}
+          >
+            Metro
+          </button>
+          <button
+            className={`tab${activeTab === "bus" ? " tab--active" : ""}`}
+            onClick={() => setActiveTab("bus")}
+          >
+            Bus
+          </button>
+        </div>
+        {activeTab === "bus" && (
+          <div className="tab-search">
+            <input
+              type="search"
+              placeholder="Search routes..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+        )}
       </div>
       <div className="route-list-items">
         {activeTab === "metro" &&
@@ -179,14 +191,6 @@ export function RouteList({
           ))}
         {activeTab === "bus" && (
           <>
-            <div className="tab-search">
-              <input
-                type="search"
-                placeholder="Search routes..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            </div>
             {filteredBus.length === 0 ? (
               <p className="no-results">
                 No routes match &ldquo;{query}&rdquo;
