@@ -45,7 +45,7 @@ export function MapView({
   return (
     <>
       <MapContainer
-        ref={mapRef as React.Ref<L.Map>}
+        ref={mapRef}
         center={MONTREAL}
         zoom={12}
         className="map-container"
@@ -87,8 +87,8 @@ export function MapView({
         {selectedLocation && <LocationMarker location={selectedLocation} radius={locationRadius} />}
         {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
       </MapContainer>
-      {pinModeActive && (
-        <MapCenterPin onConfirm={handleConfirm} onCancel={onPinCancel ?? (() => {})} />
+      {pinModeActive && onPinConfirm && onPinCancel && (
+        <MapCenterPin onConfirm={handleConfirm} onCancel={onPinCancel} />
       )}
     </>
   );
