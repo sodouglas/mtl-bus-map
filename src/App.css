@@ -276,24 +276,6 @@ body,
   display: none;
 }
 
-/* ── Mobile: bottom floating sheet ── */
-@media (max-width: 767px) {
-  .sidebar {
-    top: auto;
-    bottom: var(--panel-margin);
-    left: var(--panel-margin);
-    right: var(--panel-margin);
-    width: auto;
-    max-height: 55vh;
-  }
-
-  .sidebar--minimized {
-    bottom: var(--panel-margin);
-    right: auto;
-    width: auto;
-  }
-}
-
 /* ── Route List ── */
 .route-list {
   display: flex;
@@ -372,6 +354,7 @@ body,
 .selected-summary-items {
   max-height: 200px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--surface-hover);
   border-radius: 8px;
   margin-bottom: 8px;
@@ -471,6 +454,7 @@ body,
 .route-list-items {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 4px 0;
   scrollbar-width: thin;
   scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
@@ -721,6 +705,7 @@ body,
 .lsp-add-dest {
   display: flex;
   align-items: center;
+  align-self: flex-end;
   gap: 6px;
   border: none;
   background: none;
@@ -1186,5 +1171,45 @@ body,
 
   .error-overlay {
     color: #f66;
+  }
+}
+
+/* ── Mobile: bottom floating sheet ── */
+@media (max-width: 767px) {
+  .sidebar {
+    top: auto;
+    bottom: var(--panel-margin);
+    left: var(--panel-margin);
+    right: var(--panel-margin);
+    width: auto;
+    max-height: 55vh;
+  }
+
+  .sidebar--minimized {
+    bottom: var(--panel-margin);
+    right: auto;
+    width: auto;
+  }
+
+  .sidebar-body {
+    display: block;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .route-list {
+    display: block;
+    overflow: visible;
+    height: auto;
+  }
+
+  .route-list-items {
+    overflow-y: hidden;
+    overscroll-behavior: unset;
+  }
+
+  .selected-summary-items {
+    max-height: none;
+    overflow-y: visible;
   }
 }
