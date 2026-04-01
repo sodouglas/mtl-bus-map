@@ -57,34 +57,7 @@ body,
   height: 100%;
 }
 
-/* ── Sidebar Toggle (always top-left) ── */
-.sidebar-toggle {
-  position: fixed;
-  top: var(--panel-margin);
-  left: var(--panel-margin);
-  z-index: 1002;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  background: var(--panel-bg);
-  backdrop-filter: blur(var(--panel-blur));
-  -webkit-backdrop-filter: blur(var(--panel-blur));
-  box-shadow: var(--panel-shadow);
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.sidebar-toggle:hover {
-  background: var(--surface-hover);
-  color: var(--text-secondary);
-}
-
-/* ── Sidebar (floating panel) ── */
+/* ── Sidebar (island panel) ── */
 .sidebar {
   position: fixed;
   top: var(--panel-margin);
@@ -100,17 +73,68 @@ body,
   border-radius: var(--panel-radius);
   box-shadow: var(--panel-shadow);
   z-index: 1001;
-  transform: translateX(0);
-  opacity: 1;
-  transition:
-    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sidebar--collapsed {
-  transform: translateX(calc(-100% - var(--panel-margin)));
-  opacity: 0;
-  pointer-events: none;
+/* Minimized = badge island: body hides, only header remains */
+.sidebar--minimized {
+  bottom: auto;
+  width: auto;
+}
+
+/* ── Sidebar Header (toggle row — always visible) ── */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 6px;
+  flex-shrink: 0;
+}
+
+.sidebar:not(.sidebar--minimized) .sidebar-header {
+  border-bottom: 1px solid var(--panel-border);
+}
+
+/* ── Sidebar Toggle (inside header) ── */
+.sidebar-toggle {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.sidebar-toggle:hover {
+  background: var(--surface-hover);
+  color: var(--text-secondary);
+}
+
+/* Badge count — visible when minimized and routes are selected */
+.sidebar-badge-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0 4px;
+  letter-spacing: -0.01em;
+}
+
+/* ── Sidebar Body (hidden when minimized) ── */
+.sidebar-body {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.sidebar--minimized .sidebar-body {
+  display: none;
 }
 
 /* ── Mobile: bottom floating sheet ── */
@@ -122,15 +146,12 @@ body,
     right: var(--panel-margin);
     width: auto;
     max-height: 55vh;
-    transform: translateY(0);
-    transition:
-      transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  .sidebar--collapsed {
-    transform: translateY(calc(100% + var(--panel-margin)));
-    opacity: 0;
+  .sidebar--minimized {
+    bottom: var(--panel-margin);
+    right: auto;
+    width: auto;
   }
 }
 
@@ -141,7 +162,6 @@ body,
   height: 100%;
   overflow: hidden;
   border-radius: var(--panel-radius);
-  padding-top: 44px; /* space for toggle overlay */
 }
 
 .route-list-header {
