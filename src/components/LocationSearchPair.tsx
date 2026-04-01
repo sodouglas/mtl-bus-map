@@ -42,7 +42,14 @@ export function LocationSearchPair({
     <div className="lsp">
       <button
         className={`lsp-chevron${expanded ? " lsp-chevron--open" : ""}`}
-        onClick={() => setExpanded((v) => !v)}
+        onClick={() => {
+          const next = !expanded;
+          setExpanded(next);
+          if (next) {
+            setOriginRadiusExpanded(true);
+            setDestRadiusExpanded(true);
+          }
+        }}
         title={expanded ? "Single location" : "Add destination"}
         aria-label={expanded ? "Single location" : "Add destination"}
         aria-expanded={expanded}
