@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { SelectedLocation } from "../types";
 import { LocationSearch } from "./LocationSearch";
 import { RadiusControl } from "./RadiusControl";
+import { RouteIndicator } from "./RouteIndicator";
 
 interface Props {
   origin: SelectedLocation | null;
@@ -38,30 +39,32 @@ export function LocationSearchPair({
   const [originRadiusExpanded, setOriginRadiusExpanded] = useState(false);
   const [destRadiusExpanded, setDestRadiusExpanded] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const originInputRef = useRef<HTMLDivElement>(null);
+  const destInputRef = useRef<HTMLDivElement>(null);
+
+  const toggle = () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next) {
+      setOriginRadiusExpanded(true);
+      setDestRadiusExpanded(true);
+    }
+  };
+
   return (
-    <div className="lsp">
-      <button
-        className={`lsp-chevron${expanded ? " lsp-chevron--open" : ""}`}
-        onClick={() => {
-          const next = !expanded;
-          setExpanded(next);
-          if (next) {
-            setOriginRadiusExpanded(true);
-            setDestRadiusExpanded(true);
-          }
-        }}
-        title={expanded ? "Single location" : "Add destination"}
-        aria-label={expanded ? "Single location" : "Add destination"}
-        aria-expanded={expanded}
-      >
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-          <path d="M3 1.5L7 5L3 8.5" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+    <div className="lsp" ref={containerRef}>
+      <RouteIndicator
+        expanded={expanded}
+        onToggle={toggle}
+        containerRef={containerRef}
+        originInputRef={originInputRef}
+        destInputRef={destInputRef}
+      />
 
       <div className="lsp-fields">
         <div className="lsp-row">
-          <div className="lsp-input-row">
+          <div className="lsp-input-row" ref={originInputRef}>
             <LocationSearch
               onSelect={onOriginSelect}
               onClear={onOriginClear}
@@ -96,9 +99,9 @@ export function LocationSearchPair({
           )}
         </div>
 
-        {expanded && (
+        {expanded ? (
           <div className="lsp-row">
-            <div className="lsp-input-row">
+            <div className="lsp-input-row" ref={destInputRef}>
               <LocationSearch
                 onSelect={onDestinationSelect}
                 onClear={onDestinationClear}
@@ -132,6 +135,14 @@ export function LocationSearchPair({
               <RadiusControl radius={destinationRadius} onChange={onDestinationRadiusChange} />
             )}
           </div>
+        ) : (
+          <button className="lsp-add-dest" onClick={toggle}>
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="5" y1="1" x2="5" y2="9" />
+              <line x1="1" y1="5" x2="9" y2="5" />
+            </svg>
+            Add destination
+          </button>
         )}
       </div>
     </div>

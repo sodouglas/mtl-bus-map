@@ -593,33 +593,64 @@ body,
 /* ── Location Search Pair ── */
 .lsp {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 0;
   margin-bottom: 8px;
 }
 
-.lsp-chevron {
+/* ── Route Indicator (origin/dest dots + line) ── */
+.ri {
   flex-shrink: 0;
+  width: 22px;
+  position: relative;
+}
+
+.ri-dot {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 20px;
-  height: 32px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   background: none;
-  cursor: pointer;
   padding: 0;
+}
+
+.ri-dot--inactive {
+  cursor: pointer;
   color: var(--text-tertiary);
-  transition: color 0.12s ease;
 }
 
-.lsp-chevron:hover {
+.ri-dot--inactive:hover {
   color: var(--text-secondary);
 }
 
-.lsp-chevron--open {
-  transform: rotate(90deg);
-  color: var(--text-secondary);
+.ri-dot--dest {
+  cursor: pointer;
+}
+
+.ri-dot--dest .ri-dot-x {
+  display: none;
+}
+
+@media (hover: hover) {
+  .ri-dot--dest:hover .ri-dot-circle {
+    display: none;
+  }
+  .ri-dot--dest:hover .ri-dot-x {
+    display: block;
+  }
+}
+
+.ri-line {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  border-left: 1.5px dashed var(--text-tertiary);
 }
 
 .lsp-fields {
@@ -630,11 +661,30 @@ body,
   gap: 5px;
 }
 
+.lsp-add-dest {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-size: 12px;
+  font-family: var(--sans);
+  color: var(--text-tertiary);
+  transition: color 0.12s ease;
+}
+
+.lsp-add-dest:hover {
+  color: var(--text-secondary);
+}
+
 .lsp-row {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 
 .lsp-input-row {
   display: flex;
