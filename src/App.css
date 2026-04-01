@@ -1077,6 +1077,76 @@ body,
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
 }
 
+/* ── Map Tooltips (sidebar-matched) ── */
+.leaflet-tooltip.stop-tooltip {
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  box-shadow: var(--panel-shadow);
+  color: var(--text-primary);
+  font-family: "Figtree", system-ui, "Segoe UI", sans-serif;
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip.stop-tooltip strong {
+  font-weight: 600;
+}
+
+.leaflet-tooltip.stop-tooltip small {
+  color: var(--text-tertiary);
+  font-size: 11px;
+}
+
+.leaflet-tooltip-top.stop-tooltip::before {
+  border-top-color: var(--panel-border);
+}
+
+.leaflet-tooltip-bottom.stop-tooltip::before {
+  border-bottom-color: var(--panel-border);
+}
+
+/* Route polyline tooltip — slightly larger than stop tooltips */
+.leaflet-tooltip.route-tooltip {
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  box-shadow: var(--panel-shadow);
+  color: var(--text-primary);
+  font-family: "Figtree", system-ui, "Segoe UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.4;
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip.route-tooltip strong {
+  font-weight: 600;
+}
+
+.route-tooltip-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.leaflet-tooltip-top.route-tooltip::before {
+  border-top-color: var(--panel-border);
+}
+
+.leaflet-tooltip-bottom.route-tooltip::before {
+  border-bottom-color: var(--panel-border);
+}
+
 /* ── Dark Mode ── */
 @media (prefers-color-scheme: dark) {
   :root {

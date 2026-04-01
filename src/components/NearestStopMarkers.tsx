@@ -34,8 +34,9 @@ export function NearestStopMarkers({ stops }: Props) {
             position={[stop.lat, stop.lng]}
             icon={stopIcon(stop.color)}
           >
-            <Tooltip>
-              <strong>{stop.routeNumber}</strong> — {stop.stopName}{hint}
+            <Tooltip direction="top" className="stop-tooltip">
+              <strong>{stop.routeNumber}</strong> — {stop.stopName}
+              {hint}
             </Tooltip>
           </Marker>
         );

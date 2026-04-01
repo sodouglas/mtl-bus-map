@@ -45,10 +45,14 @@ export function RouteStopMarkers({ selectedRoutes, colorMap }: Props) {
             position={[stop.lat, stop.lng]}
             icon={icon}
           >
-            <Tooltip>
+            <Tooltip direction="top" className="stop-tooltip">
               <strong>{route.routeNumber}</strong> — {stop.name}
-              {route.direction ? <br /> : ""}
-              {route.direction && <small>{route.direction}</small>}
+              {route.direction && (
+                <>
+                  <br />
+                  <small>{route.direction}</small>
+                </>
+              )}
             </Tooltip>
           </Marker>
         ));

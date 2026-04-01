@@ -1,5 +1,12 @@
 import { useEffect, useRef } from "react";
-import { MapContainer, TileLayer, Polyline, Tooltip, ZoomControl, useMapEvents } from "react-leaflet";
+import {
+  MapContainer,
+  TileLayer,
+  Polyline,
+  Tooltip,
+  ZoomControl,
+  useMapEvents,
+} from "react-leaflet";
 import L from "leaflet";
 import type { RouteData, SelectedLocation, NearestStop } from "../types";
 import { LocationMarker } from "./LocationMarker";
@@ -119,7 +126,10 @@ export function MapView({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <ClearHighlightOnMapClick onClear={clearHighlight} skipRef={skipMapClick} />
+        <ClearHighlightOnMapClick
+          onClear={clearHighlight}
+          skipRef={skipMapClick}
+        />
         {selectedRoutes.map((route) => {
           const isMetro = route.routeType === "metro";
           return (
@@ -133,9 +143,13 @@ export function MapView({
               }}
               eventHandlers={{
                 add: (e) => {
-                  e.target.getElement()?.classList.add(
-                    "route-line", "route-outline", `route-${cssId(route.id)}`,
-                  );
+                  e.target
+                    .getElement()
+                    ?.classList.add(
+                      "route-line",
+                      "route-outline",
+                      `route-${cssId(route.id)}`,
+                    );
                 },
               }}
             />
@@ -155,9 +169,13 @@ export function MapView({
               }}
               eventHandlers={{
                 add: (e) => {
-                  e.target.getElement()?.classList.add(
-                    "route-line", "route-fill", `route-${cssId(route.id)}`,
-                  );
+                  e.target
+                    .getElement()
+                    ?.classList.add(
+                      "route-line",
+                      "route-fill",
+                      `route-${cssId(route.id)}`,
+                    );
                 },
                 click: (e) => {
                   e.originalEvent.stopPropagation();
@@ -170,7 +188,8 @@ export function MapView({
                 },
               }}
             >
-              <Tooltip sticky>
+              <Tooltip sticky direction="top" className="route-tooltip">
+                <span className="route-tooltip-dot" style={{ background: lineColor }} />
                 <strong>{route.routeNumber}</strong>
                 {route.direction ? ` – ${route.direction}` : ""}
               </Tooltip>
@@ -178,17 +197,37 @@ export function MapView({
           );
         })}
         <RouteArrows selectedRoutes={selectedRoutes} colorMap={colorMap} />
-        {showStops && <RouteStopMarkers selectedRoutes={selectedRoutes} colorMap={colorMap} />}
-        {origin && <LocationMarker location={origin} radius={originRadius} color={ORIGIN_COLOR} />}
-        {destination && <LocationMarker location={destination} radius={destinationRadius} color={DESTINATION_COLOR} />}
+        {showStops && (
+          <RouteStopMarkers
+            selectedRoutes={selectedRoutes}
+            colorMap={colorMap}
+          />
+        )}
+        {origin && (
+          <LocationMarker
+            location={origin}
+            radius={originRadius}
+            color={ORIGIN_COLOR}
+          />
+        )}
+        {destination && (
+          <LocationMarker
+            location={destination}
+            radius={destinationRadius}
+            color={DESTINATION_COLOR}
+          />
+        )}
         {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
         {pinModeActive && pinStyle === "click" && onPinConfirm && (
           <MapClickHandler onPin={onPinConfirm} />
         )}
       </MapContainer>
-      {pinModeActive && pinStyle === "center" && onPinConfirm && onPinCancel && (
-        <MapCenterPin onConfirm={handleConfirm} onCancel={onPinCancel} />
-      )}
+      {pinModeActive &&
+        pinStyle === "center" &&
+        onPinConfirm &&
+        onPinCancel && (
+          <MapCenterPin onConfirm={handleConfirm} onCancel={onPinCancel} />
+        )}
     </>
   );
 }
