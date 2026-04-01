@@ -79,7 +79,10 @@ export function LocationSearchPair({
                 title={pinModeActive && pinTarget === "origin" ? "Cancel pin" : "Pin a location"}
                 aria-label={pinModeActive && pinTarget === "origin" ? "Cancel pin" : "Pin origin location"}
               >
-                📍
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
               </button>
             )}
             <button
@@ -88,7 +91,7 @@ export function LocationSearchPair({
               title={`Search radius: ${originRadius}m`}
               aria-label={`Adjust origin radius (${originRadius}m)`}
             >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+              <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
                 <circle cx="7" cy="7" r="5.5" />
                 <circle cx="7" cy="7" r="2" />
               </svg>
@@ -116,7 +119,10 @@ export function LocationSearchPair({
                   title={pinModeActive && pinTarget === "destination" ? "Cancel pin" : "Pin a location"}
                   aria-label={pinModeActive && pinTarget === "destination" ? "Cancel pin" : "Pin destination location"}
                 >
-                  📍
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                    <circle cx="12" cy="9" r="2.5" />
+                  </svg>
                 </button>
               )}
               <button
@@ -125,7 +131,7 @@ export function LocationSearchPair({
                 title={`Search radius: ${destinationRadius}m`}
                 aria-label={`Adjust destination radius (${destinationRadius}m)`}
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <svg width="18" height="18" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
                   <circle cx="7" cy="7" r="5.5" />
                   <circle cx="7" cy="7" r="2" />
                 </svg>

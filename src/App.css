@@ -685,7 +685,6 @@ body,
   gap: 2px;
 }
 
-
 .lsp-input-row {
   display: flex;
   align-items: center;
@@ -701,8 +700,8 @@ body,
 /* ── Radius Button (inside lsp) ── */
 .lsp-radius-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -724,34 +723,35 @@ body,
 
 .lsp-radius-btn--open {
   color: var(--text-secondary);
-  background: var(--surface-hover);
+  background: var(--input-bg);
 }
 
 /* ── Pin Location Button ── */
 .pin-location-btn {
   flex-shrink: 0;
-  width: 28px;
-  height: 28px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1.5px solid transparent;
   background: none;
-  font-size: 14px;
+  color: var(--text-tertiary);
   cursor: pointer;
   border-radius: 8px;
-  line-height: 1;
   transition:
+    color 0.12s ease,
     background 0.12s ease,
     border-color 0.12s ease;
 }
 
 .pin-location-btn:hover {
+  color: var(--text-secondary);
   background: var(--surface-hover);
 }
 
 .pin-location-btn--active {
-  background: rgba(58, 134, 255, 0.08);
+  background: var(--input-bg);
   border-color: rgba(58, 134, 255, 0.3);
 }
 
@@ -849,7 +849,7 @@ body,
   border: none;
   border-radius: 8px;
   background: rgba(58, 134, 255, 0.07);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--focus-ring);
 }
