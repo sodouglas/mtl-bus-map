@@ -709,7 +709,6 @@ body,
 .lsp-add-dest {
   display: flex;
   align-items: center;
-  align-self: flex-end;
   gap: 6px;
   border: none;
   background: none;
