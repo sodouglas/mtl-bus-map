@@ -703,7 +703,7 @@ body,
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
 }
 
 .lsp-add-dest {
