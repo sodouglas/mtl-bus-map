@@ -78,7 +78,7 @@ body,
 /* Minimized = badge island: body hides, only header remains */
 .sidebar--minimized {
   bottom: auto;
-  width: auto;
+  width: 200px;
 }
 
 /* ── Sidebar Header (toggle row — always visible) ── */
@@ -115,7 +115,7 @@ body,
   color: var(--text-secondary);
 }
 
-/* ── Transit Strip (animated bus + metro) ── */
+/* ── Transit Strip (animated ASCII bus + metro) ── */
 .transit-strip {
   flex: 1;
   min-width: 0;
@@ -124,23 +124,26 @@ body,
   overflow: hidden;
 }
 
+/* Road/rail line — sits beneath the wheels */
 .transit-strip::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  top: 50%;
+  bottom: 5px;
   border-top: 1px dashed var(--panel-border);
 }
 
 .transit-bus,
 .transit-metro {
   position: absolute;
-  top: 50%;
-  margin-top: -9px;
-  font-size: 16px;
-  line-height: 1;
+  top: 1px;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 9px;
+  line-height: 1.1;
+  white-space: pre;
   z-index: 1;
+  color: var(--text-secondary);
 }
 
 .transit-bus {
@@ -153,8 +156,8 @@ body,
 }
 
 @keyframes transit-ltr {
-  from { transform: translateX(-28px); }
-  to   { transform: translateX(360px); }
+  from { transform: translateX(-110px); }
+  to   { transform: translateX(450px); }
 }
 
 /* Badge count — visible when minimized and routes are selected */

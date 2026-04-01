@@ -251,8 +251,8 @@ export default function App() {
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
         <div className="sidebar-header">
           <div className="transit-strip" aria-hidden="true">
-            <span className="transit-bus">🚌</span>
-            <span className="transit-metro">🚇</span>
+            <span className="transit-bus">{` ________\n|[]  [] |>\n o      o`}</span>
+            <span className="transit-metro">{` ______________\n|[]|[]|[]|[]|=>\n o            o`}</span>
           </div>
           {!sidebarOpen && selectedIds.size > 0 && (
             <span className="sidebar-badge-count">{selectedIds.size}</span>
