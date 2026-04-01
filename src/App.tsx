@@ -27,6 +27,7 @@ export default function App() {
   const [showStops, setShowStops] = useState(false);
   const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [pinModeActive, setPinModeActive] = useState(false);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -83,10 +84,22 @@ export default function App() {
   function handleLocationSelect(location: SelectedLocation) {
     setSelectedLocation(location);
     selectNearbyRoutes(location, radius);
+    setPinModeActive(false);
   }
 
   function handleClearLocation() {
     setSelectedLocation(null);
+  }
+
+  function handlePinConfirm(lat: number, lng: number) {
+    const location: SelectedLocation = { displayName: "Pinned location", lat, lng };
+    setSelectedLocation(location);
+    selectNearbyRoutes(location, radius);
+    setPinModeActive(false);
+  }
+
+  function handlePinCancel() {
+    setPinModeActive(false);
   }
 
   function handleRadiusChange(r: number) {
@@ -174,6 +187,19 @@ export default function App() {
                   hasLocation={selectedLocation !== null}
                   locationName={selectedLocation?.displayName ?? ""}
                 />
+                {!selectedLocation && (
+                  <button
+                    className={`pin-location-btn${pinModeActive ? " pin-location-btn--active" : ""}`}
+                    onClick={() => {
+                      setPinModeActive(true);
+                      if (window.innerWidth < 768) setSidebarOpen(false);
+                    }}
+                    title="Pin a location"
+                    aria-label="Pin a location"
+                  >
+                    📍
+                  </button>
+                )}
                 <button
                   className={`radius-expand-btn${radiusExpanded ? " radius-expand-btn--open" : ""}`}
                   onClick={() => setRadiusExpanded((v) => !v)}
@@ -196,7 +222,7 @@ export default function App() {
       >
         {sidebarOpen ? "\u2039" : "\u203A"}
       </button>
-      <div className="map-wrapper">
+      <div className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}>
         <MapView
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
@@ -204,6 +230,10 @@ export default function App() {
           locationRadius={radius}
           nearestStops={nearestStops}
           showStops={showStops}
+          pinModeActive={pinModeActive}
+          pinStyle={window.innerWidth < 768 ? "center" : "click"}
+          onPinConfirm={handlePinConfirm}
+          onPinCancel={handlePinCancel}
         />
       </div>
     </div>
