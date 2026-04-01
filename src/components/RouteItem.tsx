@@ -22,13 +22,14 @@ export function RouteItem({ route, selected, colorOverride, onToggle }: Props) {
         type="checkbox"
         checked={selected}
         onChange={() => onToggle(route.id)}
+        className="sr-only"
       />
       <span className="route-color-dot" style={{ backgroundColor: dotColor }} />
       <span className="route-label">
         <strong>{route.routeNumber}</strong>
-        {route.direction ? ` - ${route.direction}` : ""}
+        {route.direction ? ` ${route.direction}` : ""}
         {route.name && route.routeType !== "metro" ? (
-          <small> ({route.name})</small>
+          <small> {route.name}</small>
         ) : null}
       </span>
     </label>

@@ -154,6 +154,16 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="map-wrapper">
+        <MapView
+          selectedRoutes={selectedRoutes}
+          colorMap={colorMap}
+          selectedLocation={selectedLocation}
+          locationRadius={radius}
+          nearestStops={nearestStops}
+          showStops={showStops}
+        />
+      </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--collapsed"}`}>
         <RouteList
           routes={visibleRoutes}
@@ -189,23 +199,16 @@ export default function App() {
         />
       </aside>
       <button
-        className={`sidebar-toggle${sidebarOpen ? "" : " sidebar-toggle--collapsed"}`}
+        className="sidebar-toggle"
         onClick={() => setSidebarOpen((v) => !v)}
         aria-label={sidebarOpen ? "Hide panel" : "Show panel"}
         title={sidebarOpen ? "Hide panel" : "Show panel"}
       >
-        {sidebarOpen ? "\u2039" : "\u203A"}
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+          <rect x="1.5" y="1.5" width="15" height="15" rx="3" />
+          <line x1="7" y1="1.5" x2="7" y2="16.5" />
+        </svg>
       </button>
-      <div className="map-wrapper">
-        <MapView
-          selectedRoutes={selectedRoutes}
-          colorMap={colorMap}
-          selectedLocation={selectedLocation}
-          locationRadius={radius}
-          nearestStops={nearestStops}
-          showStops={showStops}
-        />
-      </div>
     </div>
   );
 }
