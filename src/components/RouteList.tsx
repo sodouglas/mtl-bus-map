@@ -17,62 +17,19 @@ interface Props {
   hasBothEndpoints?: boolean;
 }
 
-function ModeSection({
-  label,
-  mode,
-  enabled,
-  onToggleMode,
-  defaultExpanded,
-  children,
-}: {
-  label: string;
-  mode: string;
-  enabled: boolean;
-  onToggleMode: (mode: string) => void;
-  defaultExpanded: boolean;
-  children: ReactNode;
-}) {
-  const [expanded, setExpanded] = useState(defaultExpanded);
-
-  return (
-    <div className="mode-section">
-      <div className="mode-section-header">
-        <button
-          className="mode-section-toggle"
-          onClick={() => setExpanded((v) => !v)}
-          aria-expanded={expanded}
-        >
-          <span className={`mode-section-chevron${expanded ? " mode-section-chevron--open" : ""}`}>
-            &#9654;
-          </span>
-          <span className="mode-section-label">{label}</span>
-        </button>
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={() => onToggleMode(mode)}
-          title={`Toggle ${label.toLowerCase()}`}
-        />
-      </div>
-      {expanded && <div className="mode-section-content">{children}</div>}
-    </div>
-  );
-}
-
 export function RouteList({
   routes,
   selectedIds,
   colorMap,
   onToggle,
   onClearAll,
-  enabledModes,
-  onToggleMode,
   locationSearch,
   showStops,
   onToggleShowStops,
   hasBothEndpoints = false,
 }: Props) {
   const [query, setQuery] = useState("");
+  const [activeTab, setActiveTab] = useState<"metro" | "bus">("metro");
 
   const metroRoutes = routes.filter((r) => r.routeType === "metro");
   const busRoutes = routes.filter((r) => r.routeType === "bus");
@@ -97,7 +54,6 @@ export function RouteList({
   return (
     <div className="route-list">
       <div className="route-list-header">
-        <h2>STM Routes</h2>
         {locationSearch}
         <div className="route-list-meta">
           <span>
@@ -107,88 +63,91 @@ export function RouteList({
           </span>
           {selectedIds.size > 0 && (
             <button className="route-list-meta-button" onClick={onClearAll}>
-              Clear all
+              Clear
             </button>
           )}
           {selectedIds.size > 0 && (
-            <span className="show-stops-toggle">
+            <label className="show-stops-toggle" htmlFor="show-stops">
               <input
                 type="checkbox"
                 id="show-stops"
                 checked={showStops}
                 onChange={onToggleShowStops}
               />
-              <label htmlFor="show-stops">Show stops</label>
-            </span>
+              <span className="show-stops-indicator" />
+              Stops
+            </label>
           )}
         </div>
         {hasBothEndpoints && selectedIds.size === 0 && (
           <p className="no-connecting-routes">No direct routes found between these locations.</p>
         )}
       </div>
-      <div className="route-list-items">
-        <ModeSection
-          label="Metro"
-          mode="metro"
-          enabled={enabledModes.has("metro")}
-          onToggleMode={onToggleMode}
-          defaultExpanded
+      <div className="tab-bar">
+        <button
+          className={`tab${activeTab === "metro" ? " tab--active" : ""}`}
+          onClick={() => setActiveTab("metro")}
         >
-          {metroRoutes.map((route) => (
+          Metro
+        </button>
+        <button
+          className={`tab${activeTab === "bus" ? " tab--active" : ""}`}
+          onClick={() => setActiveTab("bus")}
+        >
+          Bus
+        </button>
+      </div>
+      <div className="route-list-items">
+        {activeTab === "metro" &&
+          metroRoutes.map((route) => (
             <RouteItem
               key={route.id}
               route={route}
               selected={selectedIds.has(route.id)}
-              colorOverride={selectedIds.has(route.id) ? colorMap.get(route.id) : undefined}
+              colorOverride={
+                selectedIds.has(route.id) ? colorMap.get(route.id) : undefined
+              }
               onToggle={onToggle}
             />
           ))}
-        </ModeSection>
-
-        <ModeSection
-          label="Bus"
-          mode="bus"
-          enabled={enabledModes.has("bus")}
-          onToggleMode={onToggleMode}
-          defaultExpanded
-        >
-          <div className="mode-section-search">
-            <input
-              type="search"
-              placeholder="Search bus routes..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
-          {filteredBus.length === 0 ? (
-            <p className="no-results">No routes match "{query}"</p>
-          ) : (
-            <>
-              {selectedInOrder.map((route) => (
-                <RouteItem
-                  key={route.id}
-                  route={route}
-                  selected
-                  colorOverride={colorMap.get(route.id)}
-                  onToggle={onToggle}
-                />
-              ))}
-              {selectedInOrder.length > 0 && unselectedBus.length > 0 && (
-                <div className="route-list-divider">
-                  <span>All routes</span>
-                </div>
-              )}
-              {unselectedBus.map((route) => (
-                <RouteItem
-                  key={route.id}
-                  route={route}
-                  selected={false}
-                  onToggle={onToggle}
-                />
-              ))}
-            </>
-          )}
-        </ModeSection>
+        {activeTab === "bus" && (
+          <>
+            <div className="tab-search">
+              <input
+                type="search"
+                placeholder="Search routes..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
+            {filteredBus.length === 0 ? (
+              <p className="no-results">No routes match &ldquo;{query}&rdquo;</p>
+            ) : (
+              <>
+                {selectedInOrder.map((route) => (
+                  <RouteItem
+                    key={route.id}
+                    route={route}
+                    selected
+                    colorOverride={colorMap.get(route.id)}
+                    onToggle={onToggle}
+                  />
+                ))}
+                {selectedInOrder.length > 0 && unselectedBus.length > 0 && (
+                  <div className="route-list-divider" />
+                )}
+                {unselectedBus.map((route) => (
+                  <RouteItem
+                    key={route.id}
+                    route={route}
+                    selected={false}
+                    onToggle={onToggle}
+                  />
+                ))}
+              </>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

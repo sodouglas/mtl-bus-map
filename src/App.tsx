@@ -232,53 +232,6 @@ export default function App() {
 
   return (
     <div className="app">
-      <aside className={`sidebar${sidebarOpen ? "" : " sidebar--collapsed"}`}>
-        <RouteList
-          routes={visibleRoutes}
-          selectedIds={selectedIds}
-          colorMap={colorMap}
-          onToggle={handleToggle}
-          onClearAll={handleClearAll}
-          enabledModes={enabledModes}
-          onToggleMode={handleToggleMode}
-          showStops={showStops}
-          onToggleShowStops={() => setShowStops((s) => !s)}
-          hasBothEndpoints={hasBothEndpoints}
-          locationSearch={
-            <LocationSearchPair
-              origin={origin}
-              destination={destination}
-              originRadius={originRadius}
-              destinationRadius={destinationRadius}
-              onOriginSelect={handleOriginSelect}
-              onOriginClear={handleOriginClear}
-              onDestinationSelect={handleDestinationSelect}
-              onDestinationClear={handleDestinationClear}
-              onOriginRadiusChange={handleOriginRadiusChange}
-              onDestinationRadiusChange={handleDestinationRadiusChange}
-              pinModeActive={pinModeActive}
-              pinTarget={pinTarget}
-              onPinClick={(target) => {
-                if (target === null) {
-                  setPinModeActive(false);
-                } else {
-                  setPinTarget(target);
-                  setPinModeActive(true);
-                  if (window.innerWidth < 768) setSidebarOpen(false);
-                }
-              }}
-            />
-          }
-        />
-      </aside>
-      <button
-        className={`sidebar-toggle${sidebarOpen ? "" : " sidebar-toggle--collapsed"}`}
-        onClick={() => setSidebarOpen((v) => !v)}
-        aria-label={sidebarOpen ? "Hide panel" : "Show panel"}
-        title={sidebarOpen ? "Hide panel" : "Show panel"}
-      >
-        {sidebarOpen ? "\u2039" : "\u203A"}
-      </button>
       <div className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}>
         <MapView
           selectedRoutes={selectedRoutes}
@@ -295,6 +248,67 @@ export default function App() {
           onPinCancel={handlePinCancel}
         />
       </div>
+      <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
+        <div className="sidebar-header">
+          <div className="transit-strip" aria-hidden="true">
+            <span className="transit-bus">{` ________\n|[]  [] |>\n o      o`}</span>
+            <span className="transit-metro">{` ______________\n|[]|[]|[]|[]|=>\n o            o`}</span>
+          </div>
+          {!sidebarOpen && selectedIds.size > 0 && (
+            <span className="sidebar-badge-count">{selectedIds.size}</span>
+          )}
+          <button
+            className="sidebar-toggle"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label={sidebarOpen ? "Minimize panel" : "Expand panel"}
+            title={sidebarOpen ? "Minimize panel" : "Expand panel"}
+          >
+            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <rect x="1.5" y="1.5" width="15" height="15" rx="3" />
+              <line x1="7" y1="1.5" x2="7" y2="16.5" />
+            </svg>
+          </button>
+        </div>
+        <div className="sidebar-body">
+          <RouteList
+            routes={visibleRoutes}
+            selectedIds={selectedIds}
+            colorMap={colorMap}
+            onToggle={handleToggle}
+            onClearAll={handleClearAll}
+            enabledModes={enabledModes}
+            onToggleMode={handleToggleMode}
+            showStops={showStops}
+            onToggleShowStops={() => setShowStops((s) => !s)}
+            hasBothEndpoints={hasBothEndpoints}
+            locationSearch={
+              <LocationSearchPair
+                origin={origin}
+                destination={destination}
+                originRadius={originRadius}
+                destinationRadius={destinationRadius}
+                onOriginSelect={handleOriginSelect}
+                onOriginClear={handleOriginClear}
+                onDestinationSelect={handleDestinationSelect}
+                onDestinationClear={handleDestinationClear}
+                onOriginRadiusChange={handleOriginRadiusChange}
+                onDestinationRadiusChange={handleDestinationRadiusChange}
+                pinModeActive={pinModeActive}
+                pinTarget={pinTarget}
+                onPinClick={(target) => {
+                  if (target === null) {
+                    setPinModeActive(false);
+                  } else {
+                    setPinTarget(target);
+                    setPinModeActive(true);
+                    if (window.innerWidth < 768) setSidebarOpen(false);
+                  }
+                }}
+              />
+            }
+          />
+        </div>
+      </aside>
     </div>
   );
 }
