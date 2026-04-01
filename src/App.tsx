@@ -27,6 +27,7 @@ export default function App() {
   const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
   const [pinModeActive, setPinModeActive] = useState(false);
+  const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -129,6 +130,7 @@ export default function App() {
   function handleDestinationSelect(location: SelectedLocation) {
     setDestination(location);
     recomputeSelection(origin, location, originRadius, destinationRadius);
+    setPinModeActive(false);
   }
 
   function handleDestinationClear() {
@@ -148,7 +150,11 @@ export default function App() {
 
   function handlePinConfirm(lat: number, lng: number) {
     const location: SelectedLocation = { displayName: "Pinned location", lat, lng };
-    handleOriginSelect(location);
+    if (pinTarget === "destination") {
+      handleDestinationSelect(location);
+    } else {
+      handleOriginSelect(location);
+    }
   }
 
   function handlePinCancel() {
@@ -241,6 +247,13 @@ export default function App() {
               onDestinationClear={handleDestinationClear}
               onOriginRadiusChange={handleOriginRadiusChange}
               onDestinationRadiusChange={handleDestinationRadiusChange}
+              pinModeActive={pinModeActive}
+              pinTarget={pinTarget}
+              onPinClick={(target) => {
+                setPinTarget(target);
+                setPinModeActive(true);
+                if (window.innerWidth < 768) setSidebarOpen(false);
+              }}
             />
           }
         />

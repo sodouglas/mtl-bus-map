@@ -14,6 +14,9 @@ interface Props {
   onDestinationClear: () => void;
   onOriginRadiusChange: (radius: number) => void;
   onDestinationRadiusChange: (radius: number) => void;
+  pinModeActive?: boolean;
+  pinTarget?: "origin" | "destination";
+  onPinClick?: (target: "origin" | "destination") => void;
 }
 
 export function LocationSearchPair({
@@ -27,6 +30,9 @@ export function LocationSearchPair({
   onDestinationClear,
   onOriginRadiusChange,
   onDestinationRadiusChange,
+  pinModeActive = false,
+  pinTarget,
+  onPinClick,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [originRadiusExpanded, setOriginRadiusExpanded] = useState(false);
@@ -56,21 +62,29 @@ export function LocationSearchPair({
               locationName={origin?.displayName ?? ""}
               placeholder={expanded ? "Origin..." : "Search a location..."}
             />
-            {expanded && (
+            {onPinClick && (
               <button
-                className={`lsp-radius-btn${originRadiusExpanded ? " lsp-radius-btn--open" : ""}`}
-                onClick={() => setOriginRadiusExpanded((v) => !v)}
-                title={`Search radius: ${originRadius}m`}
-                aria-label={`Adjust origin radius (${originRadius}m)`}
+                className={`pin-location-btn${pinModeActive && pinTarget === "origin" ? " pin-location-btn--active" : ""}`}
+                onClick={() => onPinClick("origin")}
+                title="Pin a location"
+                aria-label="Pin origin location"
               >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
-                  <circle cx="7" cy="7" r="5.5" />
-                  <circle cx="7" cy="7" r="2" />
-                </svg>
+                📍
               </button>
             )}
+            <button
+              className={`lsp-radius-btn${originRadiusExpanded ? " lsp-radius-btn--open" : ""}`}
+              onClick={() => setOriginRadiusExpanded((v) => !v)}
+              title={`Search radius: ${originRadius}m`}
+              aria-label={`Adjust origin radius (${originRadius}m)`}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+                <circle cx="7" cy="7" r="5.5" />
+                <circle cx="7" cy="7" r="2" />
+              </svg>
+            </button>
           </div>
-          {expanded && originRadiusExpanded && (
+          {originRadiusExpanded && (
             <RadiusControl radius={originRadius} onChange={onOriginRadiusChange} />
           )}
         </div>
@@ -85,6 +99,16 @@ export function LocationSearchPair({
                 locationName={destination?.displayName ?? ""}
                 placeholder="Destination..."
               />
+              {onPinClick && (
+                <button
+                  className={`pin-location-btn${pinModeActive && pinTarget === "destination" ? " pin-location-btn--active" : ""}`}
+                  onClick={() => onPinClick("destination")}
+                  title="Pin a location"
+                  aria-label="Pin destination location"
+                >
+                  📍
+                </button>
+              )}
               <button
                 className={`lsp-radius-btn${destRadiusExpanded ? " lsp-radius-btn--open" : ""}`}
                 onClick={() => setDestRadiusExpanded((v) => !v)}
