@@ -25,7 +25,7 @@ export default function App() {
   const [destinationRadius, setDestinationRadius] = useState(DEFAULT_RADIUS);
   const [showStops, setShowStops] = useState(false);
   const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 768);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
 
