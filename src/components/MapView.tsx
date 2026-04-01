@@ -130,7 +130,13 @@ export function MapView({
                 color: "#222",
                 weight: isMetro ? 10 : 7,
                 opacity: 0.6,
-                className: `route-line route-outline route-${cssId(route.id)}`,
+              }}
+              eventHandlers={{
+                add: (e) => {
+                  e.target.getElement()?.classList.add(
+                    "route-line", "route-outline", `route-${cssId(route.id)}`,
+                  );
+                },
               }}
             />
           );
@@ -146,9 +152,13 @@ export function MapView({
                 color: lineColor,
                 weight: isMetro ? 7 : 5,
                 opacity: 1,
-                className: `route-line route-fill route-${cssId(route.id)}`,
               }}
               eventHandlers={{
+                add: (e) => {
+                  e.target.getElement()?.classList.add(
+                    "route-line", "route-fill", `route-${cssId(route.id)}`,
+                  );
+                },
                 click: (e) => {
                   e.originalEvent.stopPropagation();
                   skipMapClick.current = true;

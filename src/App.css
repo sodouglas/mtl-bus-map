@@ -227,6 +227,7 @@ body,
   border: none;
   background: none;
   color: var(--text-secondary);
+  font-family: "Figtree", sans-serif;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;

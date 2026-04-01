@@ -31,6 +31,7 @@ export function LocationMarker({ location, radius, color = DEFAULT_COLOR }: Prop
           fillColor: color,
           fillOpacity: 0.12,
           weight: 2,
+          interactive: false,
         }}
       />
     </>
