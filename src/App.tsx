@@ -190,7 +190,10 @@ export default function App() {
                 {!selectedLocation && (
                   <button
                     className={`pin-location-btn${pinModeActive ? " pin-location-btn--active" : ""}`}
-                    onClick={() => setPinModeActive(true)}
+                    onClick={() => {
+                      setPinModeActive(true);
+                      if (window.innerWidth < 768) setSidebarOpen(false);
+                    }}
                     title="Pin a location"
                     aria-label="Pin a location"
                   >
