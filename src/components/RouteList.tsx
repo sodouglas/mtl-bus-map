@@ -30,7 +30,10 @@ export function RouteList({
 }: Props) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"metro" | "bus">("metro");
-  const [summaryState, setSummaryState] = useState({ expanded: true, prevSize: 0 });
+  const [summaryState, setSummaryState] = useState({
+    expanded: true,
+    prevSize: 0,
+  });
   let { expanded: summaryExpanded } = summaryState;
   if (selectedIds.size !== summaryState.prevSize) {
     if (selectedIds.size === 0) summaryExpanded = true;
@@ -66,7 +69,9 @@ export function RouteList({
       <div className="route-list-header">
         {locationSearch}
         {hasBothEndpoints && selectedIds.size === 0 && (
-          <p className="no-connecting-routes">No direct routes found between these locations.</p>
+          <p className="no-connecting-routes">
+            No direct routes found between these locations.
+          </p>
         )}
       </div>
       <div className="selected-summary">
@@ -75,17 +80,28 @@ export function RouteList({
             <button
               className={`selected-summary-toggle${summaryExpanded ? " selected-summary-toggle--open" : ""}`}
               onClick={() => setSummaryExpanded((v) => !v)}
-              aria-label={summaryExpanded ? "Collapse selected routes" : "Expand selected routes"}
+              aria-label={
+                summaryExpanded
+                  ? "Collapse selected routes"
+                  : "Expand selected routes"
+              }
             >
               <svg width="10" height="10" viewBox="0 0 10 10">
-                <path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path
+                  d="M3 1l4 4-4 4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </button>
           )}
           <span>
             {hasBothEndpoints
               ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
-              : `${selectedIds.size} selected`}
+              : `${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""} selected`}
           </span>
           {selectedIds.size > 0 && (
             <button className="route-list-meta-button" onClick={onClearAll}>
@@ -101,13 +117,15 @@ export function RouteList({
                 onChange={onToggleShowStops}
               />
               <span className="show-stops-indicator" />
-              Stops
+              Show stops
             </label>
           )}
         </div>
         {summaryExpanded && selectedIds.size > 0 && (
           <div className="selected-summary-items">
-            {hasBothTypes && <div className="selected-summary-group-label">Metro</div>}
+            {hasBothTypes && (
+              <div className="selected-summary-group-label">Metro</div>
+            )}
             {selectedMetro.map((route) => (
               <RouteItem
                 key={route.id}
@@ -117,7 +135,9 @@ export function RouteList({
                 onToggle={onToggle}
               />
             ))}
-            {hasBothTypes && <div className="selected-summary-group-label">Bus</div>}
+            {hasBothTypes && (
+              <div className="selected-summary-group-label">Bus</div>
+            )}
             {selectedBus.map((route) => (
               <RouteItem
                 key={route.id}
@@ -168,7 +188,9 @@ export function RouteList({
               />
             </div>
             {filteredBus.length === 0 ? (
-              <p className="no-results">No routes match &ldquo;{query}&rdquo;</p>
+              <p className="no-results">
+                No routes match &ldquo;{query}&rdquo;
+              </p>
             ) : (
               filteredBus.map((route) => (
                 <RouteItem
@@ -176,7 +198,9 @@ export function RouteList({
                   route={route}
                   selected={selectedIds.has(route.id)}
                   colorOverride={
-                    selectedIds.has(route.id) ? colorMap.get(route.id) : undefined
+                    selectedIds.has(route.id)
+                      ? colorMap.get(route.id)
+                      : undefined
                   }
                   onToggle={onToggle}
                 />
