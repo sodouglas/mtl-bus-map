@@ -68,7 +68,6 @@ body,
   flex-direction: column;
   background: var(--panel-bg);
   backdrop-filter: blur(var(--panel-blur));
-  -webkit-backdrop-filter: blur(var(--panel-blur));
   border: 1px solid var(--panel-border);
   border-radius: var(--panel-radius);
   box-shadow: var(--panel-shadow);
@@ -643,7 +642,6 @@ body,
   z-index: 1000;
   background: var(--panel-bg);
   backdrop-filter: blur(var(--panel-blur));
-  -webkit-backdrop-filter: blur(var(--panel-blur));
   border: 1px solid var(--panel-border);
   border-radius: 10px;
   box-shadow: var(--panel-shadow);
@@ -799,7 +797,6 @@ body,
   align-items: center;
   background: var(--panel-bg);
   backdrop-filter: blur(var(--panel-blur));
-  -webkit-backdrop-filter: blur(var(--panel-blur));
   border: 1px solid var(--panel-border);
   border-radius: 20px;
   box-shadow: var(--panel-shadow);
