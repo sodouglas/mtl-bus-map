@@ -250,6 +250,13 @@ export default function App() {
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
         <div className="sidebar-header">
+          <div className="transit-strip" aria-hidden="true">
+            <span className="transit-bus">🚌</span>
+            <span className="transit-metro">🚇</span>
+          </div>
+          {!sidebarOpen && selectedIds.size > 0 && (
+            <span className="sidebar-badge-count">{selectedIds.size}</span>
+          )}
           <button
             className="sidebar-toggle"
             onClick={() => setSidebarOpen((v) => !v)}
@@ -261,9 +268,6 @@ export default function App() {
               <line x1="7" y1="1.5" x2="7" y2="16.5" />
             </svg>
           </button>
-          {!sidebarOpen && selectedIds.size > 0 && (
-            <span className="sidebar-badge-count">{selectedIds.size}</span>
-          )}
         </div>
         <div className="sidebar-body">
           <RouteList
