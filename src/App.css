@@ -674,3 +674,7 @@ body,
   border-color: #3a86ff;
   color: #3a86ff;
 }
+
+.map-wrapper--pin-mode .leaflet-container {
+  cursor: crosshair !important;
+}

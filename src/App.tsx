@@ -222,7 +222,7 @@ export default function App() {
       >
         {sidebarOpen ? "\u2039" : "\u203A"}
       </button>
-      <div className="map-wrapper">
+      <div className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}>
         <MapView
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
@@ -231,6 +231,7 @@ export default function App() {
           nearestStops={nearestStops}
           showStops={showStops}
           pinModeActive={pinModeActive}
+          pinStyle={window.innerWidth < 768 ? "center" : "click"}
           onPinConfirm={handlePinConfirm}
           onPinCancel={handlePinCancel}
         />

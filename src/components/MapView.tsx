@@ -7,6 +7,7 @@ import { NearestStopMarkers } from "./NearestStopMarkers";
 import { RouteArrows } from "./RouteArrows";
 import { RouteStopMarkers } from "./RouteStopMarkers";
 import { MapCenterPin } from "./MapCenterPin";
+import { MapClickHandler } from "./MapClickHandler";
 
 interface Props {
   selectedRoutes: RouteData[];
@@ -16,6 +17,7 @@ interface Props {
   nearestStops?: NearestStop[];
   showStops?: boolean;
   pinModeActive?: boolean;
+  pinStyle?: "center" | "click";
   onPinConfirm?: (lat: number, lng: number) => void;
   onPinCancel?: () => void;
 }
@@ -30,6 +32,7 @@ export function MapView({
   nearestStops = [],
   showStops,
   pinModeActive = false,
+  pinStyle = "center",
   onPinConfirm,
   onPinCancel,
 }: Props) {
@@ -86,8 +89,11 @@ export function MapView({
         {showStops && <RouteStopMarkers selectedRoutes={selectedRoutes} colorMap={colorMap} />}
         {selectedLocation && <LocationMarker location={selectedLocation} radius={locationRadius} />}
         {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
+        {pinModeActive && pinStyle === "click" && onPinConfirm && (
+          <MapClickHandler onPin={onPinConfirm} />
+        )}
       </MapContainer>
-      {pinModeActive && onPinConfirm && onPinCancel && (
+      {pinModeActive && pinStyle === "center" && onPinConfirm && onPinCancel && (
         <MapCenterPin onConfirm={handleConfirm} onCancel={onPinCancel} />
       )}
     </>
