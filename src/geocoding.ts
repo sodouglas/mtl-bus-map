@@ -26,6 +26,33 @@ function buildDisplayName(p: PhotonFeature["properties"]): string {
   return parts.join(", ");
 }
 
+export async function reverseGeocode(
+  lat: number,
+  lng: number,
+): Promise<string> {
+  const params = new URLSearchParams({
+    lat: lat.toString(),
+    lon: lng.toString(),
+    lang: "en",
+    limit: "1",
+  });
+
+  try {
+    const response = await fetch(
+      `https://photon.komoot.io/reverse?${params}`,
+    );
+
+    if (!response.ok) return "Pinned location";
+
+    const data: { features: PhotonFeature[] } = await response.json();
+    if (data.features.length === 0) return "Pinned location";
+
+    return buildDisplayName(data.features[0].properties) || "Pinned location";
+  } catch {
+    return "Pinned location";
+  }
+}
+
 export async function searchLocation(
   query: string,
   signal?: AbortSignal,

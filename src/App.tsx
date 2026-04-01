@@ -5,6 +5,7 @@ import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
 import { LocationSearchPair } from "./components/LocationSearchPair";
 import { distanceToPolyline, findClosestStop } from "./geometry";
+import { reverseGeocode } from "./geocoding";
 
 const DEFAULT_RADIUS = 200;
 
@@ -163,9 +164,11 @@ export default function App() {
     recomputeSelection(origin, destination, originRadius, r);
   }
 
-  function handlePinConfirm(lat: number, lng: number) {
-    const location: SelectedLocation = { displayName: "Pinned location", lat, lng };
-    if (pinTarget === "destination") {
+  async function handlePinConfirm(lat: number, lng: number) {
+    const target = pinTarget;
+    const name = await reverseGeocode(lat, lng);
+    const location: SelectedLocation = { displayName: name, lat, lng };
+    if (target === "destination") {
       handleDestinationSelect(location);
     } else {
       handleOriginSelect(location);

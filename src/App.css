@@ -713,7 +713,9 @@ body,
 
 .location-search-input {
   width: 100%;
-  padding: 7px 10px 7px 30px;
+  height: 36px;
+  box-sizing: border-box;
+  padding: 0 10px 0 30px;
   border: 1.5px solid transparent;
   border-radius: 8px;
   font-family: inherit;
