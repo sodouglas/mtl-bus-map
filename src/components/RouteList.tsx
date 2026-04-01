@@ -30,9 +30,26 @@ export function RouteList({
 }: Props) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"metro" | "bus">("metro");
+  const [summaryState, setSummaryState] = useState({ expanded: true, prevSize: 0 });
+  let { expanded: summaryExpanded } = summaryState;
+  if (selectedIds.size !== summaryState.prevSize) {
+    if (selectedIds.size === 0) summaryExpanded = true;
+    else if (selectedIds.size > 8) summaryExpanded = false;
+    setSummaryState({ expanded: summaryExpanded, prevSize: selectedIds.size });
+  }
+  const setSummaryExpanded = (v: boolean | ((prev: boolean) => boolean)) =>
+    setSummaryState((s) => ({
+      ...s,
+      expanded: typeof v === "function" ? v(s.expanded) : v,
+    }));
 
   const metroRoutes = routes.filter((r) => r.routeType === "metro");
   const busRoutes = routes.filter((r) => r.routeType === "bus");
+
+  const selectedRoutes = routes.filter((r) => selectedIds.has(r.id));
+  const selectedMetro = selectedRoutes.filter((r) => r.routeType === "metro");
+  const selectedBus = selectedRoutes.filter((r) => r.routeType === "bus");
+  const hasBothTypes = selectedMetro.length > 0 && selectedBus.length > 0;
 
   const q = query.toLowerCase();
   const filteredBus = q
@@ -44,18 +61,27 @@ export function RouteList({
       )
     : busRoutes;
 
-  const selectedInOrder: RouteData[] = [];
-  for (const id of selectedIds) {
-    const route = filteredBus.find((r) => r.id === id);
-    if (route) selectedInOrder.push(route);
-  }
-  const unselectedBus = filteredBus.filter((r) => !selectedIds.has(r.id));
-
   return (
     <div className="route-list">
       <div className="route-list-header">
         {locationSearch}
-        <div className="route-list-meta">
+        {hasBothEndpoints && selectedIds.size === 0 && (
+          <p className="no-connecting-routes">No direct routes found between these locations.</p>
+        )}
+      </div>
+      <div className="selected-summary">
+        <div className="selected-summary-header">
+          {selectedIds.size > 0 && (
+            <button
+              className={`selected-summary-toggle${summaryExpanded ? " selected-summary-toggle--open" : ""}`}
+              onClick={() => setSummaryExpanded((v) => !v)}
+              aria-label={summaryExpanded ? "Collapse selected routes" : "Expand selected routes"}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path d="M3 1l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
           <span>
             {hasBothEndpoints
               ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
@@ -79,8 +105,29 @@ export function RouteList({
             </label>
           )}
         </div>
-        {hasBothEndpoints && selectedIds.size === 0 && (
-          <p className="no-connecting-routes">No direct routes found between these locations.</p>
+        {summaryExpanded && selectedIds.size > 0 && (
+          <div className="selected-summary-items">
+            {hasBothTypes && <div className="selected-summary-group-label">Metro</div>}
+            {selectedMetro.map((route) => (
+              <RouteItem
+                key={route.id}
+                route={route}
+                selected
+                colorOverride={route.color}
+                onToggle={onToggle}
+              />
+            ))}
+            {hasBothTypes && <div className="selected-summary-group-label">Bus</div>}
+            {selectedBus.map((route) => (
+              <RouteItem
+                key={route.id}
+                route={route}
+                selected
+                colorOverride={colorMap.get(route.id)}
+                onToggle={onToggle}
+              />
+            ))}
+          </div>
         )}
       </div>
       <div className="tab-bar">
@@ -123,28 +170,17 @@ export function RouteList({
             {filteredBus.length === 0 ? (
               <p className="no-results">No routes match &ldquo;{query}&rdquo;</p>
             ) : (
-              <>
-                {selectedInOrder.map((route) => (
-                  <RouteItem
-                    key={route.id}
-                    route={route}
-                    selected
-                    colorOverride={colorMap.get(route.id)}
-                    onToggle={onToggle}
-                  />
-                ))}
-                {selectedInOrder.length > 0 && unselectedBus.length > 0 && (
-                  <div className="route-list-divider" />
-                )}
-                {unselectedBus.map((route) => (
-                  <RouteItem
-                    key={route.id}
-                    route={route}
-                    selected={false}
-                    onToggle={onToggle}
-                  />
-                ))}
-              </>
+              filteredBus.map((route) => (
+                <RouteItem
+                  key={route.id}
+                  route={route}
+                  selected={selectedIds.has(route.id)}
+                  colorOverride={
+                    selectedIds.has(route.id) ? colorMap.get(route.id) : undefined
+                  }
+                  onToggle={onToggle}
+                />
+              ))
             )}
           </>
         )}

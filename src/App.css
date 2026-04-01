@@ -213,16 +213,6 @@ body,
   flex-shrink: 0;
 }
 
-.route-list-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
-  margin-top: 8px;
-}
-
 .route-list-meta-button {
   border: none;
   background: none;
@@ -239,6 +229,78 @@ body,
 .route-list-meta-button:hover {
   background: var(--surface-hover);
   color: var(--text-primary);
+}
+
+/* ── Selected Summary ── */
+.selected-summary {
+  padding: 0 16px;
+  flex-shrink: 0;
+}
+
+.selected-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 0 8px;
+}
+
+.selected-summary-toggle {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, color 0.12s ease;
+}
+
+.selected-summary-toggle:hover {
+  color: var(--text-secondary);
+}
+
+.selected-summary-toggle--open {
+  transform: rotate(90deg);
+  color: var(--text-secondary);
+}
+
+.selected-summary-items {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--surface-hover);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+}
+
+.selected-summary-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.selected-summary-items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.selected-summary-items::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.selected-summary-group-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  padding: 6px 16px 2px;
 }
 
 /* ── Tab Bar (segmented control) ── */
@@ -394,12 +456,6 @@ body,
 
 .route-item--selected:hover {
   background: var(--surface-active);
-}
-
-.route-list-divider {
-  height: 1px;
-  margin: 4px 16px;
-  background: var(--panel-border);
 }
 
 .no-results {
@@ -933,6 +989,14 @@ body,
   }
 
   .route-list-items::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .selected-summary-items {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .selected-summary-items::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
   }
 
