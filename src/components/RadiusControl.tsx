@@ -12,13 +12,6 @@ export function RadiusControl({ radius, onChange }: Props) {
     onChange(Number(e.target.value));
   }
 
-  function handleNumber(e: React.ChangeEvent<HTMLInputElement>) {
-    const v = Number(e.target.value);
-    if (!isNaN(v) && v >= MIN && v <= MAX) {
-      onChange(v);
-    }
-  }
-
   return (
     <div className="radius-control">
       <label className="radius-control-label">Radius</label>
@@ -31,18 +24,7 @@ export function RadiusControl({ radius, onChange }: Props) {
         value={radius}
         onChange={handleSlider}
       />
-      <div className="radius-control-number-wrap">
-        <input
-          type="number"
-          className="radius-control-number"
-          min={MIN}
-          max={MAX}
-          step={STEP}
-          value={radius}
-          onChange={handleNumber}
-        />
-        <span className="radius-control-unit">m</span>
-      </div>
+      <span className="radius-control-value">{radius}m</span>
     </div>
   );
 }
