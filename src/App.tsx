@@ -45,6 +45,15 @@ export default function App() {
       });
   }, []);
 
+  useEffect(() => {
+    if (!pinModeActive) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setPinModeActive(false);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pinModeActive]);
+
   function recomputeSelection(
     orig: SelectedLocation | null,
     dest: SelectedLocation | null,
@@ -250,9 +259,13 @@ export default function App() {
               pinModeActive={pinModeActive}
               pinTarget={pinTarget}
               onPinClick={(target) => {
-                setPinTarget(target);
-                setPinModeActive(true);
-                if (window.innerWidth < 768) setSidebarOpen(false);
+                if (target === null) {
+                  setPinModeActive(false);
+                } else {
+                  setPinTarget(target);
+                  setPinModeActive(true);
+                  if (window.innerWidth < 768) setSidebarOpen(false);
+                }
               }}
             />
           }

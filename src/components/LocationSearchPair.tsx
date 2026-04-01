@@ -16,7 +16,7 @@ interface Props {
   onDestinationRadiusChange: (radius: number) => void;
   pinModeActive?: boolean;
   pinTarget?: "origin" | "destination";
-  onPinClick?: (target: "origin" | "destination") => void;
+  onPinClick?: (target: "origin" | "destination" | null) => void;
 }
 
 export function LocationSearchPair({
@@ -65,9 +65,9 @@ export function LocationSearchPair({
             {onPinClick && (
               <button
                 className={`pin-location-btn${pinModeActive && pinTarget === "origin" ? " pin-location-btn--active" : ""}`}
-                onClick={() => onPinClick("origin")}
-                title="Pin a location"
-                aria-label="Pin origin location"
+                onClick={() => onPinClick(pinModeActive && pinTarget === "origin" ? null : "origin")}
+                title={pinModeActive && pinTarget === "origin" ? "Cancel pin" : "Pin a location"}
+                aria-label={pinModeActive && pinTarget === "origin" ? "Cancel pin" : "Pin origin location"}
               >
                 📍
               </button>
@@ -102,9 +102,9 @@ export function LocationSearchPair({
               {onPinClick && (
                 <button
                   className={`pin-location-btn${pinModeActive && pinTarget === "destination" ? " pin-location-btn--active" : ""}`}
-                  onClick={() => onPinClick("destination")}
-                  title="Pin a location"
-                  aria-label="Pin destination location"
+                  onClick={() => onPinClick(pinModeActive && pinTarget === "destination" ? null : "destination")}
+                  title={pinModeActive && pinTarget === "destination" ? "Cancel pin" : "Pin a location"}
+                  aria-label={pinModeActive && pinTarget === "destination" ? "Cancel pin" : "Pin destination location"}
                 >
                   📍
                 </button>
