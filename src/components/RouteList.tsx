@@ -15,6 +15,7 @@ interface Props {
   showStops: boolean;
   onToggleShowStops: () => void;
   hasBothEndpoints?: boolean;
+  badgeBlink?: "found" | "empty" | null;
 }
 
 export function RouteList({
@@ -27,6 +28,7 @@ export function RouteList({
   showStops,
   onToggleShowStops,
   hasBothEndpoints = false,
+  badgeBlink = null,
 }: Props) {
   const [query, setQuery] = useState("");
   const [activeTab, setActiveTab] = useState<"metro" | "bus">("metro");
@@ -98,7 +100,7 @@ export function RouteList({
               </svg>
             </button>
           )}
-          <span>
+          <span className={badgeBlink === "found" ? "badge-blink-found" : badgeBlink === "empty" ? "badge-blink-empty" : undefined}>
             {hasBothEndpoints
               ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
               : `${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""} selected`}

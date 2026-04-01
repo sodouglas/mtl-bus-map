@@ -99,7 +99,7 @@ export default function App() {
 
     if (blinkTimer.current) clearTimeout(blinkTimer.current);
     setBadgeBlink(matchingIds.size > 0 ? "found" : "empty");
-    blinkTimer.current = setTimeout(() => setBadgeBlink(null), 600);
+    blinkTimer.current = setTimeout(() => setBadgeBlink(null), 1200);
   }
 
   function handleToggle(id: string) {
@@ -292,6 +292,7 @@ export default function App() {
             showStops={showStops}
             onToggleShowStops={() => setShowStops((s) => !s)}
             hasBothEndpoints={hasBothEndpoints}
+            badgeBlink={badgeBlink}
             locationSearch={
               <LocationSearchPair
                 origin={origin}

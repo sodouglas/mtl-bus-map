@@ -233,18 +233,18 @@ body,
 }
 
 .badge-blink-found {
-  animation: blink-green 600ms ease-out;
+  animation: blink-green 1.2s ease-in-out;
 }
 
 .badge-blink-empty {
-  animation: blink-orange 600ms ease-out;
+  animation: blink-orange 1.2s ease-in-out;
 }
 
 @keyframes blink-green {
   0% {
     color: var(--text-secondary);
   }
-  30% {
+  35% {
     color: #2a9d8f;
   }
   100% {
@@ -256,7 +256,7 @@ body,
   0% {
     color: var(--text-secondary);
   }
-  30% {
+  35% {
     color: #e07040;
   }
   100% {
@@ -295,7 +295,7 @@ body,
 .route-list-meta-button {
   border: none;
   background: none;
-  color: var(--text-secondary);
+  color: var(--text-tertiary);
   font-family: "Figtree", sans-serif;
   font-size: 12px;
   font-weight: 500;
@@ -320,7 +320,7 @@ body,
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--text-tertiary);
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 500;
   padding: 4px 0 8px;
