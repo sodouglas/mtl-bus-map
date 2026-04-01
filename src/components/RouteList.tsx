@@ -100,7 +100,20 @@ export function RouteList({
               </svg>
             </button>
           )}
-          <span className={badgeBlink === "found" ? "badge-blink-found" : badgeBlink === "empty" ? "badge-blink-empty" : undefined}>
+          <span
+            className={`selected-summary-count${
+              badgeBlink === "found"
+                ? " badge-blink-found"
+                : badgeBlink === "empty"
+                  ? " badge-blink-empty"
+                  : ""
+            }${selectedIds.size > 0 ? " selected-summary-count--clickable" : ""}`}
+            onClick={
+              selectedIds.size > 0
+                ? () => setSummaryExpanded((v) => !v)
+                : undefined
+            }
+          >
             {hasBothEndpoints
               ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
               : `${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""} selected`}

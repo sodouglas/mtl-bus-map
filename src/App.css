@@ -312,7 +312,7 @@ body,
 
 /* ── Selected Summary ── */
 .selected-summary {
-  padding: 0 16px;
+  padding: 4px 8px 0 8px;
   flex-shrink: 0;
 }
 
@@ -321,7 +321,7 @@ body,
   align-items: center;
   gap: 8px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   padding: 4px 0 8px;
 }
@@ -350,6 +350,14 @@ body,
 .selected-summary-toggle--open {
   transform: rotate(90deg);
   color: var(--text-secondary);
+}
+
+.selected-summary-count--clickable {
+  cursor: pointer;
+}
+
+.selected-summary-count--clickable:hover {
+  color: var(--text-primary);
 }
 
 .selected-summary-items {
