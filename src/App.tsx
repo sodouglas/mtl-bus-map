@@ -84,14 +84,11 @@ export default function App() {
   function handleLocationSelect(location: SelectedLocation) {
     setSelectedLocation(location);
     selectNearbyRoutes(location, radius);
+    setPinModeActive(false);
   }
 
   function handleClearLocation() {
     setSelectedLocation(null);
-  }
-
-  function handlePinActivate() {
-    setPinModeActive(true);
   }
 
   function handlePinConfirm(lat: number, lng: number) {
@@ -193,7 +190,7 @@ export default function App() {
                 {!selectedLocation && (
                   <button
                     className={`pin-location-btn${pinModeActive ? " pin-location-btn--active" : ""}`}
-                    onClick={handlePinActivate}
+                    onClick={() => setPinModeActive(true)}
                     title="Pin a location"
                     aria-label="Pin a location"
                   >
