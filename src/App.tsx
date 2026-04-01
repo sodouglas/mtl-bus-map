@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import type { RouteData, SelectedLocation, NearestStop } from "./types";
 import { RouteList } from "./components/RouteList";
@@ -28,6 +28,8 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
+  const [badgeBlink, setBadgeBlink] = useState<"found" | "empty" | null>(null);
+  const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
     fetch(`${import.meta.env.BASE_URL}routes-data.json`)
@@ -93,6 +95,10 @@ export default function App() {
     }
 
     setSelectedIds(matchingIds);
+
+    if (blinkTimer.current) clearTimeout(blinkTimer.current);
+    setBadgeBlink(matchingIds.size > 0 ? "found" : "empty");
+    blinkTimer.current = setTimeout(() => setBadgeBlink(null), 600);
   }
 
   function handleToggle(id: string) {
@@ -254,8 +260,10 @@ export default function App() {
             <span className="transit-bus">{` ________\n|[]  [] |>\n o      o`}</span>
             <span className="transit-metro">{` ______________\n|[]|[]|[]|[]|=>\n o            o`}</span>
           </div>
-          {!sidebarOpen && selectedIds.size > 0 && (
-            <span className="sidebar-badge-count">{selectedIds.size}</span>
+          {!sidebarOpen && (
+            <span className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}`}>
+              {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
+            </span>
           )}
           <button
             className="sidebar-toggle"
