@@ -926,7 +926,7 @@ body,
   color: var(--text-tertiary);
   cursor: pointer;
   line-height: 1;
-  padding: 0 2px;
+  padding: 4px 6px;
   border-radius: 4px;
   transition:
     color 0.12s ease,
