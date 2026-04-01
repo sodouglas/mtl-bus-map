@@ -14,6 +14,7 @@ interface Props {
   locationSearch: ReactNode;
   showStops: boolean;
   onToggleShowStops: () => void;
+  hasBothEndpoints?: boolean;
 }
 
 function ModeSection({
@@ -69,6 +70,7 @@ export function RouteList({
   locationSearch,
   showStops,
   onToggleShowStops,
+  hasBothEndpoints = false,
 }: Props) {
   const [query, setQuery] = useState("");
 
@@ -98,7 +100,11 @@ export function RouteList({
         <h2>STM Routes</h2>
         {locationSearch}
         <div className="route-list-meta">
-          <span>{selectedIds.size} selected</span>
+          <span>
+            {hasBothEndpoints
+              ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
+              : `${selectedIds.size} selected`}
+          </span>
           {selectedIds.size > 0 && (
             <button className="route-list-meta-button" onClick={onClearAll}>
               Clear all
@@ -116,6 +122,9 @@ export function RouteList({
             </span>
           )}
         </div>
+        {hasBothEndpoints && selectedIds.size === 0 && (
+          <p className="no-connecting-routes">No direct routes found between these locations.</p>
+        )}
       </div>
       <div className="route-list-items">
         <ModeSection

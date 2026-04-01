@@ -7,6 +7,7 @@ interface Props {
   onClear: () => void;
   hasLocation: boolean;
   locationName: string;
+  placeholder?: string;
 }
 
 export function LocationSearch({
@@ -14,6 +15,7 @@ export function LocationSearch({
   onClear,
   hasLocation,
   locationName,
+  placeholder = "Search a location...",
 }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeocodingResult[]>([]);
@@ -82,7 +84,7 @@ export function LocationSearch({
       <input
         type="search"
         className="location-search-input"
-        placeholder="Search a location..."
+        placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onFocus={() => results.length > 0 && setIsOpen(true)}

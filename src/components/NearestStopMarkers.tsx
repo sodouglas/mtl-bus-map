@@ -16,19 +16,30 @@ interface Props {
 }
 
 export function NearestStopMarkers({ stops }: Props) {
+  const hasBothEndpoints =
+    stops.some((s) => s.endpoint === "origin") &&
+    stops.some((s) => s.endpoint === "destination");
+
   return (
     <>
-      {stops.map((stop, i) => (
-        <Marker
-          key={`${stop.routeNumber}-${stop.lat}-${stop.lng}-${i}`}
-          position={[stop.lat, stop.lng]}
-          icon={stopIcon(stop.color)}
-        >
-          <Tooltip>
-            <strong>{stop.routeNumber}</strong> — {stop.stopName}
-          </Tooltip>
-        </Marker>
-      ))}
+      {stops.map((stop, i) => {
+        const hint = hasBothEndpoints
+          ? stop.endpoint === "origin"
+            ? " (board here)"
+            : " (exit here)"
+          : "";
+        return (
+          <Marker
+            key={`${stop.routeNumber}-${stop.endpoint}-${stop.lat}-${stop.lng}-${i}`}
+            position={[stop.lat, stop.lng]}
+            icon={stopIcon(stop.color)}
+          >
+            <Tooltip>
+              <strong>{stop.routeNumber}</strong> — {stop.stopName}{hint}
+            </Tooltip>
+          </Marker>
+        );
+      })}
     </>
   );
 }

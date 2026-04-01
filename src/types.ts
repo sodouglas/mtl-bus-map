@@ -22,6 +22,7 @@ export interface NearestStop {
   lat: number;
   lng: number;
   color: string;
+  endpoint: "origin" | "destination";
 }
 
 export interface GeocodingResult {
