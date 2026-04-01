@@ -3,6 +3,7 @@ import { useEffect, useState, type RefObject } from "react";
 interface Props {
   expanded: boolean;
   onToggle: () => void;
+  onRemove: () => void;
   containerRef: RefObject<HTMLDivElement | null>;
   originInputRef: RefObject<HTMLDivElement | null>;
   destInputRef: RefObject<HTMLDivElement | null>;
@@ -11,6 +12,7 @@ interface Props {
 export function RouteIndicator({
   expanded,
   onToggle,
+  onRemove,
   containerRef,
   originInputRef,
   destInputRef,
@@ -80,7 +82,7 @@ export function RouteIndicator({
           <button
             className="ri-dot ri-dot--dest"
             style={{ top: destY }}
-            onClick={onToggle}
+            onClick={onRemove}
             title="Remove destination"
             aria-label="Remove destination"
           >

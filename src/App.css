@@ -732,6 +732,24 @@ body,
   color: var(--text-secondary);
 }
 
+.lsp-remove-dest {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 4px 0;
+  font-size: 14px;
+  font-family: var(--sans);
+  color: var(--text-tertiary);
+  transition: color 0.12s ease;
+}
+
+.lsp-remove-dest:hover {
+  color: #ef4444;
+}
+
 .lsp-row {
   display: flex;
   flex-direction: column;
