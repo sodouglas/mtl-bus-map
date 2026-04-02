@@ -558,6 +558,11 @@ body,
   background: var(--surface-active);
 }
 
+/* ── Highlighted Route Item ── */
+.route-item--highlighted {
+  background: rgba(58, 134, 255, 0.06);
+}
+
 .no-results {
   padding: 16px;
   color: var(--text-tertiary);
@@ -840,7 +845,7 @@ body,
   border: 1.5px solid transparent;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text-primary);
   background-color: var(--input-bg);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3Cpath d='M12 2C7.6 2 4 5.4 4 9.5C4 14.28 12 22 12 22S20 14.28 20 9.5C20 5.4 16.4 2 12 2Z'/%3E%3C/svg%3E");

@@ -25,6 +25,7 @@ export function LocationSearch({
 
   useEffect(() => {
     if (query.length < 3) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setResults([]);
       setIsOpen(false);
       return;

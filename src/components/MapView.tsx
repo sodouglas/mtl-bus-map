@@ -19,6 +19,8 @@ import { MapClickHandler } from "./MapClickHandler";
 interface Props {
   selectedRoutes: RouteData[];
   colorMap: Map<string, string>;
+  highlightedRouteId?: string | null;
+  onHighlightRoute?: (id: string | null) => void;
   origin?: SelectedLocation | null;
   destination?: SelectedLocation | null;
   originRadius?: number;
@@ -61,6 +63,8 @@ function ClearHighlightOnMapClick({
 export function MapView({
   selectedRoutes,
   colorMap,
+  highlightedRouteId = null,
+  onHighlightRoute,
   origin,
   destination,
   originRadius = 200,
@@ -73,37 +77,29 @@ export function MapView({
   onPinCancel,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null);
-  const highlightedRef = useRef<string | null>(null);
   const skipMapClick = useRef(false);
 
   useEffect(() => {
-    clearHighlight();
-  }, [selectedRoutes]);
-
-  function clearHighlight() {
-    highlightedRef.current = null;
     const container = mapRef.current?.getContainer();
     if (!container) return;
-    container.querySelectorAll(".route-line").forEach((el) => {
-      (el as SVGElement).style.opacity = "";
-    });
-  }
 
-  function highlightRoute(routeId: string) {
-    highlightedRef.current = routeId;
-    const container = mapRef.current?.getContainer();
-    if (!container) return;
-    const safe = cssId(routeId);
-    container.querySelectorAll(".route-outline").forEach((el) => {
-      (el as SVGElement).style.opacity = "0.15";
-    });
-    container.querySelectorAll(".route-fill").forEach((el) => {
-      (el as SVGElement).style.opacity = "0.25";
-    });
-    container.querySelectorAll(`.route-${safe}`).forEach((el) => {
-      (el as SVGElement).style.opacity = "";
-    });
-  }
+    if (highlightedRouteId) {
+      const safe = cssId(highlightedRouteId);
+      container.querySelectorAll(".route-outline").forEach((el) => {
+        (el as SVGElement).style.opacity = "0.15";
+      });
+      container.querySelectorAll(".route-fill").forEach((el) => {
+        (el as SVGElement).style.opacity = "0.25";
+      });
+      container.querySelectorAll(`.route-${safe}`).forEach((el) => {
+        (el as SVGElement).style.opacity = "";
+      });
+    } else {
+      container.querySelectorAll(".route-line").forEach((el) => {
+        (el as SVGElement).style.opacity = "";
+      });
+    }
+  }, [highlightedRouteId, selectedRoutes]);
 
   function handleConfirm() {
     if (mapRef.current && onPinConfirm) {
@@ -127,7 +123,7 @@ export function MapView({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <ClearHighlightOnMapClick
-          onClear={clearHighlight}
+          onClear={() => onHighlightRoute?.(null)}
           skipRef={skipMapClick}
         />
         {selectedRoutes.map((route) => {
@@ -180,11 +176,7 @@ export function MapView({
                 click: (e) => {
                   e.originalEvent.stopPropagation();
                   skipMapClick.current = true;
-                  if (highlightedRef.current === route.id) {
-                    clearHighlight();
-                  } else {
-                    highlightRoute(route.id);
-                  }
+                  onHighlightRoute?.(route.id);
                 },
               }}
             >
