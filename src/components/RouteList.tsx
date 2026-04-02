@@ -6,7 +6,7 @@ import { RouteItem } from "./RouteItem";
 interface Props {
   routes: RouteData[];
   selectedIds: Set<string>;
-  highlightedRouteId: string | null;
+  highlightedRouteIds: Set<string>;
   colorMap: Map<string, string>;
   onToggle: (id: string) => void;
   onHighlightRoute: (id: string | null) => void;
@@ -23,7 +23,7 @@ interface Props {
 export function RouteList({
   routes,
   selectedIds,
-  highlightedRouteId,
+  highlightedRouteIds,
   colorMap,
   onToggle,
   onHighlightRoute,
@@ -152,7 +152,7 @@ export function RouteList({
                 selected
                 colorOverride={route.color}
                 onToggle={onToggle}
-                highlighted={highlightedRouteId === route.id}
+                highlighted={highlightedRouteIds.has(route.id)}
                 onHighlightRoute={onHighlightRoute}
               />
             ))}
@@ -166,7 +166,7 @@ export function RouteList({
                 selected
                 colorOverride={colorMap.get(route.id)}
                 onToggle={onToggle}
-                highlighted={highlightedRouteId === route.id}
+                highlighted={highlightedRouteIds.has(route.id)}
                 onHighlightRoute={onHighlightRoute}
               />
             ))}

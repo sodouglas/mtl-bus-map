@@ -19,7 +19,7 @@ import { MapClickHandler } from "./MapClickHandler";
 interface Props {
   selectedRoutes: RouteData[];
   colorMap: Map<string, string>;
-  highlightedRouteId?: string | null;
+  highlightedRouteIds?: Set<string>;
   onHighlightRoute?: (id: string | null) => void;
   origin?: SelectedLocation | null;
   destination?: SelectedLocation | null;
@@ -63,7 +63,7 @@ function ClearHighlightOnMapClick({
 export function MapView({
   selectedRoutes,
   colorMap,
-  highlightedRouteId = null,
+  highlightedRouteIds = new Set(),
   onHighlightRoute,
   origin,
   destination,
@@ -83,23 +83,24 @@ export function MapView({
     const container = mapRef.current?.getContainer();
     if (!container) return;
 
-    if (highlightedRouteId) {
-      const safe = cssId(highlightedRouteId);
+    if (highlightedRouteIds.size > 0) {
       container.querySelectorAll(".route-outline").forEach((el) => {
         (el as SVGElement).style.opacity = "0.15";
       });
       container.querySelectorAll(".route-fill").forEach((el) => {
         (el as SVGElement).style.opacity = "0.25";
       });
-      container.querySelectorAll(`.route-${safe}`).forEach((el) => {
-        (el as SVGElement).style.opacity = "";
-      });
+      for (const id of highlightedRouteIds) {
+        container.querySelectorAll(`.route-${cssId(id)}`).forEach((el) => {
+          (el as SVGElement).style.opacity = "";
+        });
+      }
     } else {
       container.querySelectorAll(".route-line").forEach((el) => {
         (el as SVGElement).style.opacity = "";
       });
     }
-  }, [highlightedRouteId, selectedRoutes]);
+  }, [highlightedRouteIds, selectedRoutes]);
 
   function handleConfirm() {
     if (mapRef.current && onPinConfirm) {

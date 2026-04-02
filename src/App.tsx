@@ -29,7 +29,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
-  const [highlightedRouteId, setHighlightedRouteId] = useState<string | null>(null);
+  const [highlightedRouteIds, setHighlightedRouteIds] = useState<Set<string>>(new Set());
   const [badgeBlink, setBadgeBlink] = useState<"found" | "empty" | null>(null);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
@@ -116,7 +116,16 @@ export default function App() {
   }
 
   function handleHighlightRoute(id: string | null) {
-    setHighlightedRouteId((prev) => (prev === id ? null : id));
+    if (id === null) {
+      setHighlightedRouteIds(new Set());
+    } else {
+      setHighlightedRouteIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
   }
 
   function handleToggleMode(mode: string) {
@@ -250,7 +259,7 @@ export default function App() {
         <MapView
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
-          highlightedRouteId={highlightedRouteId}
+          highlightedRouteIds={highlightedRouteIds}
           onHighlightRoute={handleHighlightRoute}
           origin={origin}
           destination={destination}
@@ -291,7 +300,7 @@ export default function App() {
           <RouteList
             routes={visibleRoutes}
             selectedIds={selectedIds}
-            highlightedRouteId={highlightedRouteId}
+            highlightedRouteIds={highlightedRouteIds}
             colorMap={colorMap}
             onToggle={handleToggle}
             onHighlightRoute={handleHighlightRoute}
