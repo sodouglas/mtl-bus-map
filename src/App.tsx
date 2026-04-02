@@ -4,6 +4,7 @@ import type { RouteData, SelectedLocation, NearestStop } from "./types";
 import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
 import { LocationSearchPair } from "./components/LocationSearchPair";
+import { RadiusControl } from "./components/RadiusControl";
 import { distanceToPolyline, findClosestStop } from "./geometry";
 import { reverseGeocode } from "./geocoding";
 
@@ -31,6 +32,7 @@ export default function App() {
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<Set<string>>(new Set());
   const [badgeBlink, setBadgeBlink] = useState<"found" | "empty" | null>(null);
+  const [collapsedRadiusOpen, setCollapsedRadiusOpen] = useState(false);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -280,13 +282,63 @@ export default function App() {
             <span className="transit-metro">{` ______________\n|[]|[]|[]|[]|=>\n o            o`}</span>
           </div>
           {!sidebarOpen && (
-            <span className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}`}>
-              {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
-            </span>
+            <>
+              <span className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}`}>
+                {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
+              </span>
+              <button
+                className={`collapsed-pin-btn${pinModeActive ? " collapsed-pin-btn--active" : ""}`}
+                onClick={() => {
+                  if (pinModeActive) {
+                    setPinModeActive(false);
+                  } else {
+                    setPinTarget("origin");
+                    setPinModeActive(true);
+                  }
+                }}
+                title={pinModeActive ? "Cancel pin" : "Drop a pin"}
+                aria-label={pinModeActive ? "Cancel pin" : "Drop a pin on the map"}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                  <circle cx="12" cy="9" r="2.5" />
+                </svg>
+              </button>
+              <div className="collapsed-radius-wrapper">
+                <button
+                  className={`collapsed-radius-btn${collapsedRadiusOpen ? " collapsed-radius-btn--open" : ""}`}
+                  onClick={() => setCollapsedRadiusOpen((v) => !v)}
+                  title={`Search radius: ${originRadius}m`}
+                  aria-label={`Adjust radius (${originRadius}m)`}
+                >
+                  <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+                    <circle cx="7" cy="7" r="5.5" />
+                    <circle cx="7" cy="7" r="2" />
+                  </svg>
+                </button>
+                {collapsedRadiusOpen && (
+                  <div className="collapsed-radius-popover">
+                    <div className="collapsed-radius-popover-section">
+                      <span className="collapsed-radius-popover-label">Origin</span>
+                      <RadiusControl radius={originRadius} onChange={handleOriginRadiusChange} />
+                    </div>
+                    {destination && (
+                      <div className="collapsed-radius-popover-section">
+                        <span className="collapsed-radius-popover-label">Destination</span>
+                        <RadiusControl radius={destinationRadius} onChange={handleDestinationRadiusChange} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
           )}
           <button
             className="sidebar-toggle"
-            onClick={() => setSidebarOpen((v) => !v)}
+            onClick={() => {
+              setSidebarOpen((v) => !v);
+              setCollapsedRadiusOpen(false);
+            }}
             aria-label={sidebarOpen ? "Minimize panel" : "Expand panel"}
             title={sidebarOpen ? "Minimize panel" : "Expand panel"}
           >

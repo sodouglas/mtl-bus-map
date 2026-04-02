@@ -135,7 +135,8 @@ body,
 /* Minimized = badge island: body hides, only header remains */
 .sidebar--minimized {
   bottom: auto;
-  width: 200px;
+  width: auto;
+  max-width: 280px;
 }
 
 /* ── Sidebar Header (toggle row — always visible) ── */
@@ -262,6 +263,79 @@ body,
   100% {
     color: var(--text-secondary);
   }
+}
+
+/* ── Collapsed Sidebar Controls (pin + radius when minimized) ── */
+.collapsed-pin-btn,
+.collapsed-radius-btn {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid transparent;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 8px;
+  flex-shrink: 0;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease,
+    border-color 0.12s ease;
+}
+
+.collapsed-pin-btn:hover,
+.collapsed-radius-btn:hover {
+  color: var(--text-secondary);
+  background: var(--surface-hover);
+}
+
+.collapsed-pin-btn--active {
+  background: var(--input-bg);
+  border-color: rgba(58, 134, 255, 0.3);
+  color: var(--focus-ring);
+}
+
+.collapsed-radius-btn--open {
+  color: var(--text-secondary);
+  background: var(--input-bg);
+}
+
+.collapsed-radius-wrapper {
+  position: static;
+  flex-shrink: 0;
+}
+
+.collapsed-radius-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 220px;
+  padding: 10px 12px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  box-shadow: var(--panel-shadow);
+  z-index: 1002;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collapsed-radius-popover-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collapsed-radius-popover-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 /* ── Sidebar Body (hidden when minimized) ── */
@@ -1241,7 +1315,8 @@ body,
     background: rgba(58, 134, 255, 0.1);
   }
 
-  .pin-location-btn--active {
+  .pin-location-btn--active,
+  .collapsed-pin-btn--active {
     background: rgba(58, 134, 255, 0.12);
     border-color: rgba(58, 134, 255, 0.25);
   }
@@ -1272,6 +1347,12 @@ body,
     bottom: var(--panel-margin);
     right: auto;
     width: auto;
+  }
+
+  .collapsed-radius-popover {
+    top: auto;
+    bottom: calc(100% + 8px);
+    left: 0;
   }
 
   .sidebar-body {
