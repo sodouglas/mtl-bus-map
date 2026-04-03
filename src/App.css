@@ -1353,6 +1353,7 @@ body,
     top: auto;
     bottom: calc(100% + 8px);
     left: 0;
+    background: var(--panel-bg-solid);
   }
 
   .sidebar-body {
@@ -1384,5 +1385,15 @@ body,
     z-index: 1;
     padding-top: 8px;
     background: var(--panel-bg-solid);
+  }
+
+  .location-search-input {
+    font-size: 16px;
+  }
+
+  .collapsed-radius-popover {
+    width: calc(2 / 3 * 375px); /* 2/3 of typical iPhone width */
+    max-width: 90vw;
+    min-width: 160px;
   }
 }
