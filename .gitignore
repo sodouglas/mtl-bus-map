@@ -24,7 +24,7 @@ dist-ssr
 *.sw?
 
 # Generated GTFS data
-public/routes-data.json
+public/routes-data*.json
 
 # Git worktrees
 .claude/worktrees/
