@@ -116,7 +116,9 @@ body,
   background: transparent;
   color: var(--text-primary);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .locate-btn:hover {
@@ -137,14 +139,25 @@ body,
 }
 
 @keyframes locate-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @keyframes locate-error-flash {
-  0% { color: var(--text-primary); }
-  15% { color: #e63946; }
-  100% { color: var(--text-primary); }
+  0% {
+    color: var(--text-primary);
+  }
+  15% {
+    color: #e63946;
+  }
+  100% {
+    color: var(--text-primary);
+  }
 }
 
 .locate-toast {
@@ -169,8 +182,14 @@ body,
 }
 
 @keyframes locate-toast-in {
-  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .leaflet-control-attribution {
@@ -229,6 +248,14 @@ body,
 
 .sidebar:not(.sidebar--minimized) .sidebar-header {
   border-bottom: 1px solid var(--panel-border);
+}
+
+.sidebar-header-logo {
+  width: 24px;
+  height: 24px;
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.85;
 }
 
 /* ── City Switcher ── */

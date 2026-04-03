@@ -363,6 +363,13 @@ export default function App() {
               </button>
             ))}
           </div>
+          {sidebarOpen && (
+            <img
+              src={`${import.meta.env.BASE_URL}logo_med.svg`}
+              alt="Routely"
+              className="sidebar-header-logo"
+            />
+          )}
           {!sidebarOpen && (
             <>
               <span
