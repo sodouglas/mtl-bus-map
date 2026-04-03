@@ -460,6 +460,8 @@ body,
 /* ── Tab Bar (segmented control) ── */
 .tab-bar {
   flex-shrink: 0;
+  margin-bottom: 4px;
+  margin-top: 8px;
 }
 
 .tab-bar-tabs {
@@ -508,7 +510,7 @@ body,
   border: 1.5px solid transparent;
   border-radius: 8px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 14px;
   color: var(--text-primary);
   background-color: var(--input-bg);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cline x1='16.5' y1='16.5' x2='21' y2='21'/%3E%3C/svg%3E");
@@ -717,7 +719,7 @@ body,
   display: flex;
   align-items: stretch;
   gap: 0;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 /* ── Route Indicator (origin/dest dots + line) ── */
@@ -1400,8 +1402,10 @@ body,
     position: sticky;
     top: 0;
     z-index: 1;
-    padding-top: 8px;
+    padding-top: 12px;
+    padding-bottom: 8px;
     background: var(--panel-bg-solid);
+    border-radius: 10px 10px 0 0;
   }
 
   .location-search-input {
@@ -1478,6 +1482,10 @@ body,
     bottom: calc(100% + 8px);
     left: 0;
     top: auto;
+  }
+
+  .tab-search input[type="search"] {
+    font-size: 16px;
   }
 }
 
