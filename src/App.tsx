@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import type { RouteData, SelectedLocation, NearestStop } from "./types";
+import type { CityConfig } from "./cityConfig";
+import { CITY_LIST, DEFAULT_CITY } from "./cityConfig";
 import { RouteList } from "./components/RouteList";
 import { SelectedIsland } from "./components/SelectedIsland";
 import { MapView } from "./components/MapView";
@@ -27,6 +29,7 @@ const SELECTION_PALETTE = [
 ];
 
 export default function App() {
+  const [city, setCity] = useState<CityConfig>(DEFAULT_CITY);
   const [routes, setRoutes] = useState<RouteData[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -36,7 +39,9 @@ export default function App() {
   const [originRadius, setOriginRadius] = useState(DEFAULT_RADIUS);
   const [destinationRadius, setDestinationRadius] = useState(DEFAULT_RADIUS);
   const [showStops, setShowStops] = useState(false);
-  const [enabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
+  const [enabledModes, setEnabledModes] = useState<Set<string>>(
+    new Set(city.routeTypes),
+  );
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">(
@@ -51,7 +56,10 @@ export default function App() {
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}routes-data.json`)
+    const controller = new AbortController();
+    fetch(`${import.meta.env.BASE_URL}${city.dataFile}`, {
+      signal: controller.signal,
+    })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -61,10 +69,27 @@ export default function App() {
         setLoading(false);
       })
       .catch((err: Error) => {
+        if (err.name === "AbortError") return;
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+    return () => controller.abort();
+  }, [city]);
+
+  function handleCityChange(next: CityConfig) {
+    if (next.id === city.id) return;
+    setLoading(true);
+    setError(null);
+    setCity(next);
+    setRoutes([]);
+    setSelectedIds(new Set());
+    setOrigin(null);
+    setDestination(null);
+    setHighlightedRouteIds(new Set());
+    setEnabledModes(new Set(next.routeTypes));
+    setPinModeActive(false);
+    setShowStops(false);
+  }
 
   useEffect(() => {
     if (!pinModeActive) return;
@@ -282,6 +307,7 @@ export default function App() {
         className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}
       >
         <MapView
+          key={city.id}
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
           highlightedRouteIds={highlightedRouteIds}
@@ -296,6 +322,8 @@ export default function App() {
           pinStyle={window.innerWidth < 768 ? "center" : "click"}
           onPinConfirm={handlePinConfirm}
           onPinCancel={handlePinCancel}
+          center={city.center}
+          defaultZoom={city.defaultZoom}
           onLocate={handleLocateRequest}
         />
       </div>
@@ -324,6 +352,17 @@ export default function App() {
               <line x1="7" y1="1.5" x2="7" y2="16.5" />
             </svg>
           </button>
+          <div className="city-switcher">
+            {CITY_LIST.map((c) => (
+              <button
+                key={c.id}
+                className={`city-switcher-btn${c.id === city.id ? " city-switcher-btn--active" : ""}`}
+                onClick={() => handleCityChange(c)}
+              >
+                {c.agency}
+              </button>
+            ))}
+          </div>
           {!sidebarOpen && (
             <>
               <span
@@ -421,6 +460,7 @@ export default function App() {
             colorMap={colorMap}
             onToggle={handleToggle}
             hasBothEndpoints={hasBothEndpoints}
+            availableModes={city.routeTypes}
             locationSearch={
               <LocationSearchPair
                 origin={origin}
@@ -444,6 +484,7 @@ export default function App() {
                     if (window.innerWidth < 768) setSidebarOpen(false);
                   }
                 }}
+                bbox={city.bbox}
               />
             }
           />

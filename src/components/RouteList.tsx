@@ -1,7 +1,14 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
 import type { RouteData } from "../types";
+import type { RouteMode } from "../cityConfig";
 import { RouteItem } from "./RouteItem";
+
+const TAB_LABELS: Record<RouteMode, string> = {
+  metro: "Metro",
+  streetcar: "Streetcar",
+  bus: "Bus",
+};
 
 interface Props {
   routes: RouteData[];
@@ -10,6 +17,7 @@ interface Props {
   onToggle: (id: string) => void;
   locationSearch: ReactNode;
   hasBothEndpoints?: boolean;
+  availableModes: RouteMode[];
 }
 
 export function RouteList({
@@ -19,22 +27,29 @@ export function RouteList({
   onToggle,
   locationSearch,
   hasBothEndpoints = false,
+  availableModes,
 }: Props) {
   const [query, setQuery] = useState("");
-  const [activeTab, setActiveTab] = useState<"metro" | "bus">("metro");
+  const [activeTabRaw, setActiveTab] = useState<RouteMode>(availableModes[0]);
+  const activeTab = availableModes.includes(activeTabRaw) ? activeTabRaw : availableModes[0];
 
-  const metroRoutes = routes.filter((r) => r.routeType === "metro");
-  const busRoutes = routes.filter((r) => r.routeType === "bus");
+  const routesByType = new Map<RouteMode, RouteData[]>();
+  for (const mode of availableModes) {
+    routesByType.set(mode, routes.filter((r) => r.routeType === mode));
+  }
 
+  const searchableTabs = new Set<RouteMode>(["bus", "streetcar"]);
   const q = query.toLowerCase();
-  const filteredBus = q
-    ? busRoutes.filter(
-        (r) =>
-          r.routeNumber.toLowerCase().includes(q) ||
-          r.direction.toLowerCase().includes(q) ||
-          r.name.toLowerCase().includes(q),
-      )
-    : busRoutes;
+
+  function filterRoutes(list: RouteData[]) {
+    if (!q) return list;
+    return list.filter(
+      (r) =>
+        r.routeNumber.toLowerCase().includes(q) ||
+        r.direction.toLowerCase().includes(q) ||
+        r.name.toLowerCase().includes(q),
+    );
+  }
 
   return (
     <div className="route-list">
@@ -48,20 +63,17 @@ export function RouteList({
       </div>
       <div className="tab-bar">
         <div className="tab-bar-tabs">
-          <button
-            className={`tab${activeTab === "metro" ? " tab--active" : ""}`}
-            onClick={() => setActiveTab("metro")}
-          >
-            Metro
-          </button>
-          <button
-            className={`tab${activeTab === "bus" ? " tab--active" : ""}`}
-            onClick={() => setActiveTab("bus")}
-          >
-            Bus
-          </button>
+          {availableModes.map((mode) => (
+            <button
+              key={mode}
+              className={`tab${activeTab === mode ? " tab--active" : ""}`}
+              onClick={() => { setActiveTab(mode); setQuery(""); }}
+            >
+              {TAB_LABELS[mode]}
+            </button>
+          ))}
         </div>
-        {activeTab === "bus" && (
+        {searchableTabs.has(activeTab) && (
           <div className="tab-search">
             <input
               type="search"
@@ -73,8 +85,19 @@ export function RouteList({
         )}
       </div>
       <div className="route-list-items">
-        {activeTab === "metro" &&
-          metroRoutes.map((route) => (
+        {(() => {
+          const tabRoutes = routesByType.get(activeTab) ?? [];
+          const filtered = searchableTabs.has(activeTab) ? filterRoutes(tabRoutes) : tabRoutes;
+
+          if (searchableTabs.has(activeTab) && q && filtered.length === 0) {
+            return (
+              <p className="no-results">
+                No routes match &ldquo;{query}&rdquo;
+              </p>
+            );
+          }
+
+          return filtered.map((route) => (
             <RouteItem
               key={route.id}
               route={route}
@@ -84,30 +107,8 @@ export function RouteList({
               }
               onToggle={onToggle}
             />
-          ))}
-        {activeTab === "bus" && (
-          <>
-            {filteredBus.length === 0 ? (
-              <p className="no-results">
-                No routes match &ldquo;{query}&rdquo;
-              </p>
-            ) : (
-              filteredBus.map((route) => (
-                <RouteItem
-                  key={route.id}
-                  route={route}
-                  selected={selectedIds.has(route.id)}
-                  colorOverride={
-                    selectedIds.has(route.id)
-                      ? colorMap.get(route.id)
-                      : undefined
-                  }
-                  onToggle={onToggle}
-                />
-              ))
-            )}
-          </>
-        )}
+          ));
+        })()}
       </div>
     </div>
   );

@@ -23,12 +23,12 @@ jobs:
 
       - name: Commit updated route data
         run: |
-          git diff --quiet public/routes-data.json && {
-            echo "routes-data.json is already up to date"
+          git diff --quiet public/routes-data-stm.json public/routes-data-ttc.json && {
+            echo "Route data is already up to date"
             exit 0
           }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f public/routes-data.json
-          git commit -m "Update routes-data.json with latest GTFS data"
+          git add -f public/routes-data-stm.json public/routes-data-ttc.json
+          git commit -m "Update route data with latest GTFS data"
           git push

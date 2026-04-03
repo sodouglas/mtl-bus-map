@@ -11,7 +11,7 @@ export interface RouteData {
   directionId: number;
   name: string;
   color: string;
-  routeType: "bus" | "metro";
+  routeType: "bus" | "metro" | "streetcar";
   path: [number, number][];
   stops: StopData[];
 }

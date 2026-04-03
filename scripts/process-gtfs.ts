@@ -4,8 +4,28 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GTFS_URL = "https://www.stm.info/sites/default/files/gtfs/gtfs_stm.zip";
-const OUTPUT_PATH = join(__dirname, "../public/routes-data.json");
+
+interface CityGTFS {
+  id: string;
+  name: string;
+  url: string;
+  output: string;
+}
+
+const CITIES: CityGTFS[] = [
+  {
+    id: "stm",
+    name: "Montreal STM",
+    url: "https://www.stm.info/sites/default/files/gtfs/gtfs_stm.zip",
+    output: join(__dirname, "../public/routes-data-stm.json"),
+  },
+  {
+    id: "ttc",
+    name: "Toronto TTC",
+    url: "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/7795b45e-e65a-4465-81fc-c36b9dfff169/resource/cfb6b2b8-6191-41e3-bda1-b175c51148cb/download/TTC%20Routes%20and%20Schedules%20Data.zip",
+    output: join(__dirname, "../public/routes-data-ttc.json"),
+  },
+];
 
 interface StopData {
   name: string;
@@ -20,14 +40,16 @@ interface RouteData {
   directionId: number;
   name: string;
   color: string;
-  routeType: "bus" | "metro";
+  routeType: "bus" | "metro" | "streetcar";
   path: [number, number][];
   stops: StopData[];
 }
 
 function parseCSV(content: string): Record<string, string>[] {
   const lines = content.split("\n").map((l) => l.trimEnd().replace(/\r$/, ""));
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"(.*)"$/, "$1"));
+  const headers = lines[0]
+    .split(",")
+    .map((h) => h.trim().replace(/^"(.*)"$/, "$1"));
   const rows: Record<string, string>[] = [];
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
@@ -60,11 +82,10 @@ function splitCSVLine(line: string): string[] {
   return result;
 }
 
-// Douglas-Peucker line simplification
 function perpendicularDistance(
   point: [number, number],
   lineStart: [number, number],
-  lineEnd: [number, number]
+  lineEnd: [number, number],
 ): number {
   const dx = lineEnd[0] - lineStart[0];
   const dy = lineEnd[1] - lineStart[1];
@@ -74,15 +95,25 @@ function perpendicularDistance(
     const ey = point[1] - lineStart[1];
     return Math.sqrt(ex * ex + ey * ey);
   }
-  return Math.abs(dx * (lineStart[1] - point[1]) - (lineStart[0] - point[0]) * dy) / mag;
+  return (
+    Math.abs(dx * (lineStart[1] - point[1]) - (lineStart[0] - point[0]) * dy) /
+    mag
+  );
 }
 
-function douglasPeucker(points: [number, number][], epsilon: number): [number, number][] {
+function douglasPeucker(
+  points: [number, number][],
+  epsilon: number,
+): [number, number][] {
   if (points.length <= 2) return points;
   let maxDist = 0;
   let maxIndex = 0;
   for (let i = 1; i < points.length - 1; i++) {
-    const dist = perpendicularDistance(points[i], points[0], points[points.length - 1]);
+    const dist = perpendicularDistance(
+      points[i],
+      points[0],
+      points[points.length - 1],
+    );
     if (dist > maxDist) {
       maxDist = dist;
       maxIndex = i;
@@ -100,34 +131,83 @@ function roundCoord(n: number): number {
   return Math.round(n * 100000) / 100000;
 }
 
-async function main() {
+function routeTypeFromGtfs(type: string): "bus" | "metro" | "streetcar" | null {
+  switch (type) {
+    case "0":
+      return "streetcar";
+    case "1":
+      return "metro";
+    case "3":
+      return "bus";
+    default:
+      return null;
+  }
+}
+
+function cleanMetroTerminal(name: string, cityId: string): string {
+  if (cityId === "ttc") {
+    return name.replace(/\s+Station(?:\s*-\s*.+)?$/i, "");
+  }
+  return name.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, "");
+}
+
+function cleanTtcHeadsign(headsign: string, routeLongName: string): string {
+  if (routeLongName && headsign.startsWith(routeLongName + " ")) {
+    return headsign.slice(routeLongName.length).trim();
+  }
+
+  const towardsMatch = headsign.match(/\s+(towards\s+.+)$/i);
+  if (towardsMatch) {
+    const towardsPart = towardsMatch[1];
+    const prefix = headsign.slice(0, towardsMatch.index!);
+    const dirMatch = prefix.match(/^(North|South|East|West)\s*-\s*/i);
+    if (dirMatch) {
+      return `${dirMatch[1]} ${towardsPart}`;
+    }
+    return towardsPart;
+  }
+
+  return headsign;
+}
+
+async function findGtfsFile(zip: JSZip, name: string): Promise<string> {
+  const direct = zip.file(name);
+  if (direct) return direct.async("string");
+
+  for (const [path, file] of Object.entries(zip.files)) {
+    if (!file.dir && path.endsWith(`/${name}`)) {
+      return file.async("string");
+    }
+  }
+  throw new Error(`${name} not found in zip (checked root and subdirectories)`);
+}
+
+async function processCity(city: CityGTFS) {
+  console.log(`\n=== Processing ${city.name} ===`);
+
   console.log("Downloading GTFS zip...");
-  const response = await fetch(GTFS_URL);
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const response = await fetch(city.url);
+  if (!response.ok) throw new Error(`HTTP ${response.status} for ${city.name}`);
   const buffer = await response.arrayBuffer();
 
   console.log("Extracting zip...");
   const zip = await JSZip.loadAsync(buffer);
 
-  const readFile = async (name: string) => {
-    const file = zip.file(name);
-    if (!file) throw new Error(`${name} not found in zip`);
-    return file.async("string");
-  };
-
   console.log("Parsing routes.txt...");
-  const routesRaw = parseCSV(await readFile("routes.txt"));
+  const routesRaw = parseCSV(await findGtfsFile(zip, "routes.txt"));
   const transitRoutes = routesRaw.filter(
-    (r) => r.route_type === "3" || r.route_type === "1"
+    (r) => r.route_type === "0" || r.route_type === "1" || r.route_type === "3",
   );
   const routeMap = new Map(transitRoutes.map((r) => [r.route_id, r]));
 
-  console.log(`Found ${transitRoutes.length} transit routes (bus + metro)`);
+  console.log(`Found ${transitRoutes.length} transit routes`);
 
   console.log("Parsing trips.txt...");
-  const tripsRaw = parseCSV(await readFile("trips.txt"));
-  // For each (route_id, direction_id), collect (shape_id, headsign)
-  const tripsByRouteDir = new Map<string, { shapeId: string; headsign: string }[]>();
+  const tripsRaw = parseCSV(await findGtfsFile(zip, "trips.txt"));
+  const tripsByRouteDir = new Map<
+    string,
+    { shapeId: string; headsign: string }[]
+  >();
   for (const trip of tripsRaw) {
     if (!routeMap.has(trip.route_id)) continue;
     const key = `${trip.route_id}|${trip.direction_id}`;
@@ -139,43 +219,11 @@ async function main() {
   }
 
   console.log("Parsing shapes.txt...");
-  const shapesRaw = parseCSV(await readFile("shapes.txt"));
-  // shape_id -> sorted array of [lat, lng]
-  const shapePoints = new Map<string, [number, number][]>();
-  for (const s of shapesRaw) {
-    const id = s.shape_id;
-    if (!shapePoints.has(id)) shapePoints.set(id, []);
-    shapePoints.get(id)!.push([parseFloat(s.shape_pt_lat), parseFloat(s.shape_pt_lon)]);
-  }
-  // Sort each shape by sequence
-  for (const [id] of shapePoints) {
-    shapePoints
-      .get(id)!
-      .sort(
-        (a, b) =>
-          (shapesRaw.find(
-            (s) => s.shape_id === id && parseFloat(s.shape_pt_lat) === a[0] && parseFloat(s.shape_pt_lon) === a[1]
-          )?.shape_pt_sequence
-            ? parseInt(
-                shapesRaw.find(
-                  (s) => s.shape_id === id && parseFloat(s.shape_pt_lat) === a[0]
-                )?.shape_pt_sequence ?? "0"
-              )
-            : 0) -
-          (shapesRaw.find(
-            (s) => s.shape_id === id && parseFloat(s.shape_pt_lat) === b[0] && parseFloat(s.shape_pt_lon) === b[1]
-          )?.shape_pt_sequence
-            ? parseInt(
-                shapesRaw.find(
-                  (s) => s.shape_id === id && parseFloat(s.shape_pt_lat) === b[0]
-                )?.shape_pt_sequence ?? "0"
-              )
-            : 0)
-      );
-  }
-
-  // Better: rebuild shape points with sequence
-  const shapePointsSeq = new Map<string, { seq: number; lat: number; lng: number }[]>();
+  const shapesRaw = parseCSV(await findGtfsFile(zip, "shapes.txt"));
+  const shapePointsSeq = new Map<
+    string,
+    { seq: number; lat: number; lng: number }[]
+  >();
   for (const s of shapesRaw) {
     const id = s.shape_id;
     if (!shapePointsSeq.has(id)) shapePointsSeq.set(id, []);
@@ -188,12 +236,18 @@ async function main() {
   const shapesSorted = new Map<string, [number, number][]>();
   for (const [id, pts] of shapePointsSeq) {
     pts.sort((a, b) => a.seq - b.seq);
-    shapesSorted.set(id, pts.map((p) => [p.lat, p.lng]));
+    shapesSorted.set(
+      id,
+      pts.map((p) => [p.lat, p.lng]),
+    );
   }
 
   console.log("Parsing stops.txt...");
-  const stopsRaw = parseCSV(await readFile("stops.txt"));
-  const stopsMap = new Map<string, { name: string; lat: number; lng: number }>();
+  const stopsRaw = parseCSV(await findGtfsFile(zip, "stops.txt"));
+  const stopsMap = new Map<
+    string,
+    { name: string; lat: number; lng: number }
+  >();
   for (const s of stopsRaw) {
     stopsMap.set(s.stop_id, {
       name: s.stop_name,
@@ -204,8 +258,7 @@ async function main() {
   console.log(`Found ${stopsMap.size} stops`);
 
   console.log("Parsing stop_times.txt...");
-  const stopTimesRaw = parseCSV(await readFile("stop_times.txt"));
-  // trip_id -> sorted stop_ids
+  const stopTimesRaw = parseCSV(await findGtfsFile(zip, "stop_times.txt"));
   const stopsByTrip = new Map<string, { seq: number; stopId: string }[]>();
   for (const st of stopTimesRaw) {
     const tripId = st.trip_id;
@@ -219,24 +272,20 @@ async function main() {
     entries.sort((a, b) => a.seq - b.seq);
   }
 
-  // Build trip_id -> { route_id, direction_id, shape_id } for bus routes
-  const tripInfo = new Map<string, { routeId: string; directionId: string; shapeId: string }>();
-  for (const trip of tripsRaw) {
-    if (!routeMap.has(trip.route_id)) continue;
-    tripInfo.set(trip.trip_id, {
-      routeId: trip.route_id,
-      directionId: trip.direction_id,
-      shapeId: trip.shape_id,
-    });
-  }
-
   console.log("Building route data...");
   const DEFAULT_COLORS = [
-    "#009EE0", "#E31837", "#00A550", "#F7A600", "#6D2077",
-    "#00B5E2", "#FF6720", "#005DA8", "#8DC63F", "#C8102E",
+    "#009EE0",
+    "#E31837",
+    "#00A550",
+    "#F7A600",
+    "#6D2077",
+    "#00B5E2",
+    "#FF6720",
+    "#005DA8",
+    "#8DC63F",
+    "#C8102E",
   ];
 
-  // Pre-collect terminal station names for each metro route (both directions)
   const metroTerminals = new Map<string, Set<string>>();
   for (const [key, trips] of tripsByRouteDir) {
     const [routeId] = key.split("|");
@@ -251,28 +300,26 @@ async function main() {
   const results: RouteData[] = [];
   let colorIdx = 0;
 
-  // Track metro routes already processed (direction doesn't matter for metro)
-  const processedMetroRoutes = new Set<string>();
+  const processedSingleDirRoutes = new Set<string>();
 
   for (const [key, trips] of tripsByRouteDir) {
     const [routeId, directionIdStr] = key.split("|");
     const route = routeMap.get(routeId);
     if (!route) continue;
     const directionId = parseInt(directionIdStr);
-    const isMetro = route.route_type === "1";
+    const rType = routeTypeFromGtfs(route.route_type);
+    if (!rType) continue;
+    const isSingleDir = rType === "metro";
 
-    // Skip duplicate metro directions — one entry per metro line is enough
-    if (isMetro) {
-      if (processedMetroRoutes.has(routeId)) continue;
-      processedMetroRoutes.add(routeId);
+    if (isSingleDir) {
+      if (processedSingleDirRoutes.has(routeId)) continue;
+      processedSingleDirRoutes.add(routeId);
     }
 
-    // Count shape occurrences to find the most common (fullest) shape
     const shapeCounts = new Map<string, number>();
     for (const t of trips) {
       shapeCounts.set(t.shapeId, (shapeCounts.get(t.shapeId) ?? 0) + 1);
     }
-    // Pick shape with most points (most representative path)
     let bestShapeId = "";
     let bestPoints = 0;
     for (const [shapeId] of shapeCounts) {
@@ -286,12 +333,13 @@ async function main() {
 
     const rawPath = shapesSorted.get(bestShapeId)!;
     const simplified = douglasPeucker(rawPath, 0.0001);
-    const path = simplified.map(([lat, lng]) => [roundCoord(lat), roundCoord(lng)] as [number, number]);
+    const path = simplified.map(
+      ([lat, lng]) => [roundCoord(lat), roundCoord(lng)] as [number, number],
+    );
 
-    // Get headsign from most common trip for this shape
-    const headsign = trips.find((t) => t.shapeId === bestShapeId)?.headsign ?? directionIdStr;
+    const headsign =
+      trips.find((t) => t.shapeId === bestShapeId)?.headsign ?? directionIdStr;
 
-    // Find a representative trip using this shape to get its stops
     let stops: StopData[] = [];
     for (const trip of tripsRaw) {
       if (
@@ -305,7 +353,11 @@ async function main() {
           .map((ts) => {
             const stop = stopsMap.get(ts.stopId);
             if (!stop) return null;
-            return { name: stop.name, lat: roundCoord(stop.lat), lng: roundCoord(stop.lng) };
+            return {
+              name: stop.name,
+              lat: roundCoord(stop.lat),
+              lng: roundCoord(stop.lng),
+            };
           })
           .filter((s): s is StopData => s !== null);
         break;
@@ -314,42 +366,68 @@ async function main() {
 
     const routeNumber = route.route_short_name ?? routeId;
     const rawColor = route.route_color ? `#${route.route_color}` : null;
-    const color = rawColor && rawColor !== "#" ? rawColor : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
-    if (!isMetro) colorIdx++;
+    const color =
+      rawColor && rawColor !== "#"
+        ? rawColor
+        : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
+    if (!isSingleDir) colorIdx++;
 
     results.push({
-      id: isMetro ? routeId : `${routeId}-${directionId}`,
+      id: isSingleDir ? routeId : `${routeId}-${directionId}`,
       routeNumber,
-      direction: isMetro
+      direction: isSingleDir
         ? stops.length >= 2
           ? [stops[0].name, stops[stops.length - 1].name]
-              .map((n) => n.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+              .map((n) => cleanMetroTerminal(n, city.id))
               .join(" / ")
           : [...(metroTerminals.get(routeId) ?? [])]
-              .map((h) => h.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+              .map((h) => cleanMetroTerminal(h, city.id))
               .join(" / ")
-        : headsign,
-      directionId: isMetro ? 0 : directionId,
+        : city.id === "ttc"
+          ? cleanTtcHeadsign(headsign, route.route_long_name ?? "")
+          : headsign,
+      directionId: isSingleDir ? 0 : directionId,
       name: route.route_long_name ?? "",
       color,
-      routeType: isMetro ? "metro" : "bus",
+      routeType: rType,
       path,
       stops,
     });
   }
 
-  // Sort metro before bus, then numerically by route number
   results.sort((a, b) => {
-    if (a.routeType !== b.routeType) return a.routeType === "metro" ? -1 : 1;
+    const typeOrder = { metro: 0, streetcar: 1, bus: 2 };
+    if (a.routeType !== b.routeType)
+      return typeOrder[a.routeType] - typeOrder[b.routeType];
     const na = parseInt(a.routeNumber) || 0;
     const nb = parseInt(b.routeNumber) || 0;
     if (na !== nb) return na - nb;
     return a.directionId - b.directionId;
   });
 
-  console.log(`Writing ${results.length} route directions to ${OUTPUT_PATH}`);
-  writeFileSync(OUTPUT_PATH, JSON.stringify(results));
-  console.log("Done.");
+  console.log(`Writing ${results.length} route directions to ${city.output}`);
+  writeFileSync(city.output, JSON.stringify(results));
+  console.log(`Done with ${city.name}.`);
+}
+
+async function main() {
+  const cityArg = process.argv
+    .find((a) => a.startsWith("--city="))
+    ?.split("=")[1];
+  const citiesToProcess = cityArg
+    ? CITIES.filter((c) => c.id === cityArg)
+    : CITIES;
+
+  if (citiesToProcess.length === 0) {
+    console.error(
+      `Unknown city: ${cityArg}. Available: ${CITIES.map((c) => c.id).join(", ")}`,
+    );
+    process.exit(1);
+  }
+
+  for (const city of citiesToProcess) {
+    await processCity(city);
+  }
 }
 
 main().catch((err) => {
