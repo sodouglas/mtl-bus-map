@@ -941,6 +941,36 @@ body,
   background-color: var(--input-bg-focus);
 }
 
+.location-search-input::-webkit-search-cancel-button,
+.location-search-input::-webkit-search-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
+.location-search-clear {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: none;
+  font-size: 14px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 6px;
+  border-radius: 4px;
+  transition:
+    color 0.12s ease,
+    background 0.12s ease;
+}
+
+.location-search-clear:hover {
+  color: var(--text-primary);
+  background: var(--surface-hover);
+}
+
 .location-search-loading {
   padding: 3px 0;
   font-size: 11px;

@@ -91,6 +91,19 @@ export function LocationSearch({
         onFocus={() => results.length > 0 && setIsOpen(true)}
         onBlur={() => setTimeout(() => setIsOpen(false), 150)}
       />
+      {query && (
+        <button
+          className="location-search-clear"
+          onClick={() => {
+            setQuery("");
+            setResults([]);
+            setIsOpen(false);
+          }}
+          aria-label="Clear search"
+        >
+          &times;
+        </button>
+      )}
       {loading && query.length >= 3 && (
         <div className="location-search-loading">Searching...</div>
       )}
