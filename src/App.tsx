@@ -196,6 +196,13 @@ export default function App() {
     }
   }
 
+  function handleLocateRequest() {
+    const target = !origin ? "origin" : !destination ? "destination" : "origin";
+    setPinTarget(target);
+    setPinModeActive(true);
+    if (window.innerWidth < 768) setSidebarOpen(false);
+  }
+
   function handlePinCancel() {
     setPinModeActive(false);
   }
@@ -289,6 +296,7 @@ export default function App() {
           pinStyle={window.innerWidth < 768 ? "center" : "click"}
           onPinConfirm={handlePinConfirm}
           onPinCancel={handlePinCancel}
+          onLocate={handleLocateRequest}
         />
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>

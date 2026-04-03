@@ -15,6 +15,7 @@ import { RouteArrows } from "./RouteArrows";
 import { RouteStopMarkers } from "./RouteStopMarkers";
 import { MapCenterPin } from "./MapCenterPin";
 import { MapClickHandler } from "./MapClickHandler";
+import { LocateButton } from "./LocateButton";
 
 interface Props {
   selectedRoutes: RouteData[];
@@ -31,6 +32,7 @@ interface Props {
   pinStyle?: "center" | "click";
   onPinConfirm?: (lat: number, lng: number) => void;
   onPinCancel?: () => void;
+  onLocate?: () => void;
 }
 
 const MONTREAL: [number, number] = [45.5017, -73.5673];
@@ -75,6 +77,7 @@ export function MapView({
   pinStyle = "center",
   onPinConfirm,
   onPinCancel,
+  onLocate,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const skipMapClick = useRef(false);
@@ -119,6 +122,7 @@ export function MapView({
         zoomControl={false}
       >
         <ZoomControl position="topright" />
+        {onLocate && <LocateButton onLocate={onLocate} />}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

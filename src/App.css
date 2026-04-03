@@ -94,6 +94,85 @@ body,
   border-radius: 0 0 9px 9px !important;
 }
 
+/* ── Locate button control ── */
+.locate-control {
+  border: 1px solid var(--panel-border) !important;
+  border-radius: 10px !important;
+  background: var(--panel-bg) !important;
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  box-shadow: var(--panel-shadow) !important;
+  overflow: hidden;
+  margin-top: 6px !important;
+}
+
+.locate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.locate-btn:hover {
+  background: var(--surface-hover);
+}
+
+.locate-btn:active {
+  background: var(--surface-active);
+}
+
+.locate-btn--loading {
+  animation: locate-pulse 1s ease-in-out infinite;
+}
+
+.locate-btn--error {
+  color: #e63946;
+  animation: locate-error-flash 1.5s ease-in-out;
+}
+
+@keyframes locate-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes locate-error-flash {
+  0% { color: var(--text-primary); }
+  15% { color: #e63946; }
+  100% { color: var(--text-primary); }
+}
+
+.locate-toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  padding: 8px 18px;
+  border-radius: 10px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--panel-shadow);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  animation: locate-toast-in 0.25s ease-out;
+}
+
+@keyframes locate-toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
 .leaflet-control-attribution {
   background: var(--panel-bg) !important;
   backdrop-filter: blur(var(--panel-blur));
