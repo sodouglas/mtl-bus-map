@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import type { RouteData, SelectedLocation, NearestStop } from "./types";
 import { RouteList } from "./components/RouteList";
+import { SelectedIsland } from "./components/SelectedIsland";
 import { MapView } from "./components/MapView";
 import { LocationSearchPair } from "./components/LocationSearchPair";
 import { RadiusControl } from "./components/RadiusControl";
@@ -26,13 +27,14 @@ export default function App() {
   const [originRadius, setOriginRadius] = useState(DEFAULT_RADIUS);
   const [destinationRadius, setDestinationRadius] = useState(DEFAULT_RADIUS);
   const [showStops, setShowStops] = useState(false);
-  const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
+  const [enabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
   const [highlightedRouteIds, setHighlightedRouteIds] = useState<Set<string>>(new Set());
   const [badgeBlink, setBadgeBlink] = useState<"found" | "empty" | null>(null);
   const [collapsedRadiusOpen, setCollapsedRadiusOpen] = useState(false);
+  const [islandOpen, setIslandOpen] = useState(false);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -128,18 +130,6 @@ export default function App() {
         return next;
       });
     }
-  }
-
-  function handleToggleMode(mode: string) {
-    setEnabledModes((prev) => {
-      const next = new Set(prev);
-      if (next.has(mode)) {
-        next.delete(mode);
-      } else {
-        next.add(mode);
-      }
-      return next;
-    });
   }
 
   function handleClearAll() {
@@ -277,13 +267,14 @@ export default function App() {
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
         <div className="sidebar-header">
-          <div className="transit-strip" aria-hidden="true">
-            <span className="transit-bus">{` ________\n|[]  [] |>\n o      o`}</span>
-            <span className="transit-metro">{` ______________\n|[]|[]|[]|[]|=>\n o            o`}</span>
-          </div>
           {!sidebarOpen && (
             <>
-              <span className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}`}>
+              <span
+                className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}${selectedIds.size > 0 ? " sidebar-badge-count--clickable" : ""}${islandOpen ? " sidebar-badge-count--active" : ""}`}
+                onClick={selectedIds.size > 0 ? () => {
+                  if (window.innerWidth < 768) setIslandOpen((v) => !v);
+                } : undefined}
+              >
                 {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
               </span>
               <button
@@ -316,7 +307,7 @@ export default function App() {
                     <circle cx="7" cy="7" r="2" />
                   </svg>
                 </button>
-                {collapsedRadiusOpen && (
+                {collapsedRadiusOpen && !islandOpen && (
                   <div className="collapsed-radius-popover">
                     <div className="collapsed-radius-popover-section">
                       <span className="collapsed-radius-popover-label">Origin</span>
@@ -338,6 +329,7 @@ export default function App() {
             onClick={() => {
               setSidebarOpen((v) => !v);
               setCollapsedRadiusOpen(false);
+              setIslandOpen(false);
             }}
             aria-label={sidebarOpen ? "Minimize panel" : "Expand panel"}
             title={sidebarOpen ? "Minimize panel" : "Expand panel"}
@@ -352,17 +344,9 @@ export default function App() {
           <RouteList
             routes={visibleRoutes}
             selectedIds={selectedIds}
-            highlightedRouteIds={highlightedRouteIds}
             colorMap={colorMap}
             onToggle={handleToggle}
-            onHighlightRoute={handleHighlightRoute}
-            onClearAll={handleClearAll}
-            enabledModes={enabledModes}
-            onToggleMode={handleToggleMode}
-            showStops={showStops}
-            onToggleShowStops={() => setShowStops((s) => !s)}
             hasBothEndpoints={hasBothEndpoints}
-            badgeBlink={badgeBlink}
             locationSearch={
               <LocationSearchPair
                 origin={origin}
@@ -391,6 +375,35 @@ export default function App() {
           />
         </div>
       </aside>
+      <div className={`selected-island${!sidebarOpen && islandOpen ? " selected-island--open" : ""}${sidebarOpen ? " selected-island--sidebar-open" : ""}`}>
+        {collapsedRadiusOpen && islandOpen && (
+          <div className="collapsed-radius-popover collapsed-radius-popover--above-island">
+            <div className="collapsed-radius-popover-section">
+              <span className="collapsed-radius-popover-label">Origin</span>
+              <RadiusControl radius={originRadius} onChange={handleOriginRadiusChange} />
+            </div>
+            {destination && (
+              <div className="collapsed-radius-popover-section">
+                <span className="collapsed-radius-popover-label">Destination</span>
+                <RadiusControl radius={destinationRadius} onChange={handleDestinationRadiusChange} />
+              </div>
+            )}
+          </div>
+        )}
+        <SelectedIsland
+          routes={visibleRoutes}
+          selectedIds={selectedIds}
+          highlightedRouteIds={highlightedRouteIds}
+          colorMap={colorMap}
+          onToggle={handleToggle}
+          onHighlightRoute={handleHighlightRoute}
+          onClearAll={handleClearAll}
+          showStops={showStops}
+          onToggleShowStops={() => setShowStops((s) => !s)}
+          hasBothEndpoints={hasBothEndpoints}
+          badgeBlink={badgeBlink}
+        />
+      </div>
     </div>
   );
 }
