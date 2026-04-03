@@ -18,6 +18,7 @@ interface Props {
   pinModeActive?: boolean;
   pinTarget?: "origin" | "destination";
   onPinClick?: (target: "origin" | "destination" | null) => void;
+  bbox: string;
 }
 
 export function LocationSearchPair({
@@ -34,6 +35,7 @@ export function LocationSearchPair({
   pinModeActive = false,
   pinTarget,
   onPinClick,
+  bbox,
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [originRadiusExpanded, setOriginRadiusExpanded] = useState(false);
@@ -77,6 +79,7 @@ export function LocationSearchPair({
               hasLocation={origin !== null}
               locationName={origin?.displayName ?? ""}
               placeholder={expanded ? "Origin..." : "Search a location..."}
+              bbox={bbox}
             />
             {onPinClick && (
               <button
@@ -118,6 +121,7 @@ export function LocationSearchPair({
                   hasLocation={destination !== null}
                   locationName={destination?.displayName ?? ""}
                   placeholder="Destination..."
+                  bbox={bbox}
                 />
                 {onPinClick && (
                   <button

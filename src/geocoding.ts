@@ -55,13 +55,14 @@ export async function reverseGeocode(
 
 export async function searchLocation(
   query: string,
+  bbox: string,
   signal?: AbortSignal,
 ): Promise<GeocodingResult[]> {
   const params = new URLSearchParams({
     q: query,
     limit: "5",
     lang: "en",
-    bbox: "-73.98,45.40,-73.47,45.70",
+    bbox,
   });
 
   const response = await fetch(`${PHOTON_URL}?${params}`, { signal });

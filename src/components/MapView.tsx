@@ -31,9 +31,9 @@ interface Props {
   pinStyle?: "center" | "click";
   onPinConfirm?: (lat: number, lng: number) => void;
   onPinCancel?: () => void;
+  center: [number, number];
+  defaultZoom: number;
 }
-
-const MONTREAL: [number, number] = [45.5017, -73.5673];
 const ORIGIN_COLOR = "#3A86FF";
 const DESTINATION_COLOR = "#E63946";
 
@@ -75,6 +75,8 @@ export function MapView({
   pinStyle = "center",
   onPinConfirm,
   onPinCancel,
+  center,
+  defaultZoom,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const skipMapClick = useRef(false);
@@ -113,8 +115,8 @@ export function MapView({
     <>
       <MapContainer
         ref={mapRef}
-        center={MONTREAL}
-        zoom={12}
+        center={center}
+        zoom={defaultZoom}
         className="map-container"
         zoomControl={false}
       >

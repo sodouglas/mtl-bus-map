@@ -8,6 +8,7 @@ interface Props {
   hasLocation: boolean;
   locationName: string;
   placeholder?: string;
+  bbox: string;
 }
 
 export function LocationSearch({
@@ -16,6 +17,7 @@ export function LocationSearch({
   hasLocation,
   locationName,
   placeholder = "Search a location...",
+  bbox,
 }: Props) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<GeocodingResult[]>([]);
@@ -25,9 +27,6 @@ export function LocationSearch({
 
   useEffect(() => {
     if (query.length < 3) {
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      setResults([]);
-      setIsOpen(false);
       return;
     }
 
@@ -37,7 +36,7 @@ export function LocationSearch({
       abortRef.current = controller;
 
       setLoading(true);
-      searchLocation(query, controller.signal)
+      searchLocation(query, bbox, controller.signal)
         .then((data) => {
           setResults(data);
           setIsOpen(data.length > 0);
@@ -50,7 +49,11 @@ export function LocationSearch({
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [query]);
+  }, [query, bbox]);
+
+  const tooShort = query.length < 3;
+  const displayResults = tooShort ? [] : results;
+  const displayOpen = tooShort ? false : isOpen;
 
   function handleSelect(result: GeocodingResult) {
     setQuery("");
@@ -88,15 +91,15 @@ export function LocationSearch({
         placeholder={placeholder}
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        onFocus={() => results.length > 0 && setIsOpen(true)}
+        onFocus={() => displayResults.length > 0 && setIsOpen(true)}
         onBlur={() => setTimeout(() => setIsOpen(false), 150)}
       />
       {loading && query.length >= 3 && (
         <div className="location-search-loading">Searching...</div>
       )}
-      {isOpen && (
+      {displayOpen && (
         <ul className="location-search-dropdown">
-          {results.map((r) => (
+          {displayResults.map((r) => (
             <li key={r.placeId}>
               <button
                 className="location-search-dropdown-item"

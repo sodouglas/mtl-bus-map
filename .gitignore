@@ -25,6 +25,8 @@ dist-ssr
 
 # Generated GTFS data
 public/routes-data.json
+public/routes-data-stm.json
+public/routes-data-ttc.json
 
 # Git worktrees
 .claude/worktrees/

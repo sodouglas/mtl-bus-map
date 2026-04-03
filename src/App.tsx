@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import type { RouteData, SelectedLocation, NearestStop } from "./types";
+import type { CityConfig } from "./cityConfig";
+import { CITY_LIST, DEFAULT_CITY } from "./cityConfig";
 import { RouteList } from "./components/RouteList";
 import { MapView } from "./components/MapView";
 import { LocationSearchPair } from "./components/LocationSearchPair";
@@ -17,6 +19,7 @@ const SELECTION_PALETTE = [
 ];
 
 export default function App() {
+  const [city, setCity] = useState<CityConfig>(DEFAULT_CITY);
   const [routes, setRoutes] = useState<RouteData[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
@@ -26,7 +29,7 @@ export default function App() {
   const [originRadius, setOriginRadius] = useState(DEFAULT_RADIUS);
   const [destinationRadius, setDestinationRadius] = useState(DEFAULT_RADIUS);
   const [showStops, setShowStops] = useState(false);
-  const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
+  const [enabledModes, setEnabledModes] = useState<Set<string>>(new Set(city.routeTypes));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
   const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
@@ -36,7 +39,8 @@ export default function App() {
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}routes-data.json`)
+    const controller = new AbortController();
+    fetch(`${import.meta.env.BASE_URL}${city.dataFile}`, { signal: controller.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -46,10 +50,27 @@ export default function App() {
         setLoading(false);
       })
       .catch((err: Error) => {
+        if (err.name === "AbortError") return;
         setError(err.message);
         setLoading(false);
       });
-  }, []);
+    return () => controller.abort();
+  }, [city]);
+
+  function handleCityChange(next: CityConfig) {
+    if (next.id === city.id) return;
+    setLoading(true);
+    setError(null);
+    setCity(next);
+    setRoutes([]);
+    setSelectedIds(new Set());
+    setOrigin(null);
+    setDestination(null);
+    setHighlightedRouteIds(new Set());
+    setEnabledModes(new Set(next.routeTypes));
+    setPinModeActive(false);
+    setShowStops(false);
+  }
 
   useEffect(() => {
     if (!pinModeActive) return;
@@ -259,6 +280,7 @@ export default function App() {
     <div className="app">
       <div className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}>
         <MapView
+          key={city.id}
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
           highlightedRouteIds={highlightedRouteIds}
@@ -273,10 +295,23 @@ export default function App() {
           pinStyle={window.innerWidth < 768 ? "center" : "click"}
           onPinConfirm={handlePinConfirm}
           onPinCancel={handlePinCancel}
+          center={city.center}
+          defaultZoom={city.defaultZoom}
         />
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
         <div className="sidebar-header">
+          <div className="city-switcher">
+            {CITY_LIST.map((c) => (
+              <button
+                key={c.id}
+                className={`city-switcher-btn${c.id === city.id ? " city-switcher-btn--active" : ""}`}
+                onClick={() => handleCityChange(c)}
+              >
+                {c.agency}
+              </button>
+            ))}
+          </div>
           <div className="transit-strip" aria-hidden="true">
             <span className="transit-bus">{` ________\n|[]  [] |>\n o      o`}</span>
             <span className="transit-metro">{` ______________\n|[]|[]|[]|[]|=>\n o            o`}</span>
@@ -363,6 +398,7 @@ export default function App() {
             onToggleShowStops={() => setShowStops((s) => !s)}
             hasBothEndpoints={hasBothEndpoints}
             badgeBlink={badgeBlink}
+            availableModes={city.routeTypes}
             locationSearch={
               <LocationSearchPair
                 origin={origin}
@@ -386,6 +422,7 @@ export default function App() {
                     if (window.innerWidth < 768) setSidebarOpen(false);
                   }
                 }}
+                bbox={city.bbox}
               />
             }
           />
