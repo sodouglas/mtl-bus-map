@@ -1357,6 +1357,12 @@ body,
     max-height: 55vh;
     background: var(--panel-bg-solid);
     backdrop-filter: none;
+    flex-direction: column-reverse;
+  }
+
+  .sidebar:not(.sidebar--minimized) .sidebar-header {
+    border-bottom: none;
+    border-top: 1px solid var(--panel-border);
   }
 
   .sidebar--minimized {
