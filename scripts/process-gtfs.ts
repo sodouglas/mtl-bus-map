@@ -47,7 +47,9 @@ interface RouteData {
 
 function parseCSV(content: string): Record<string, string>[] {
   const lines = content.split("\n").map((l) => l.trimEnd().replace(/\r$/, ""));
-  const headers = lines[0].split(",").map((h) => h.trim().replace(/^"(.*)"$/, "$1"));
+  const headers = lines[0]
+    .split(",")
+    .map((h) => h.trim().replace(/^"(.*)"$/, "$1"));
   const rows: Record<string, string>[] = [];
   for (let i = 1; i < lines.length; i++) {
     if (!lines[i].trim()) continue;
@@ -83,7 +85,7 @@ function splitCSVLine(line: string): string[] {
 function perpendicularDistance(
   point: [number, number],
   lineStart: [number, number],
-  lineEnd: [number, number]
+  lineEnd: [number, number],
 ): number {
   const dx = lineEnd[0] - lineStart[0];
   const dy = lineEnd[1] - lineStart[1];
@@ -93,15 +95,25 @@ function perpendicularDistance(
     const ey = point[1] - lineStart[1];
     return Math.sqrt(ex * ex + ey * ey);
   }
-  return Math.abs(dx * (lineStart[1] - point[1]) - (lineStart[0] - point[0]) * dy) / mag;
+  return (
+    Math.abs(dx * (lineStart[1] - point[1]) - (lineStart[0] - point[0]) * dy) /
+    mag
+  );
 }
 
-function douglasPeucker(points: [number, number][], epsilon: number): [number, number][] {
+function douglasPeucker(
+  points: [number, number][],
+  epsilon: number,
+): [number, number][] {
   if (points.length <= 2) return points;
   let maxDist = 0;
   let maxIndex = 0;
   for (let i = 1; i < points.length - 1; i++) {
-    const dist = perpendicularDistance(points[i], points[0], points[points.length - 1]);
+    const dist = perpendicularDistance(
+      points[i],
+      points[0],
+      points[points.length - 1],
+    );
     if (dist > maxDist) {
       maxDist = dist;
       maxIndex = i;
@@ -121,11 +133,41 @@ function roundCoord(n: number): number {
 
 function routeTypeFromGtfs(type: string): "bus" | "metro" | "streetcar" | null {
   switch (type) {
-    case "0": return "streetcar";
-    case "1": return "metro";
-    case "3": return "bus";
-    default: return null;
+    case "0":
+      return "streetcar";
+    case "1":
+      return "metro";
+    case "3":
+      return "bus";
+    default:
+      return null;
   }
+}
+
+function cleanMetroTerminal(name: string, cityId: string): string {
+  if (cityId === "ttc") {
+    return name.replace(/\s+Station(?:\s*-\s*.+)?$/i, "");
+  }
+  return name.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, "");
+}
+
+function cleanTtcHeadsign(headsign: string, routeLongName: string): string {
+  if (routeLongName && headsign.startsWith(routeLongName + " ")) {
+    return headsign.slice(routeLongName.length).trim();
+  }
+
+  const towardsMatch = headsign.match(/\s+(towards\s+.+)$/i);
+  if (towardsMatch) {
+    const towardsPart = towardsMatch[1];
+    const prefix = headsign.slice(0, towardsMatch.index!);
+    const dirMatch = prefix.match(/^(North|South|East|West)\s*-\s*/i);
+    if (dirMatch) {
+      return `${dirMatch[1]} ${towardsPart}`;
+    }
+    return towardsPart;
+  }
+
+  return headsign;
 }
 
 async function findGtfsFile(zip: JSZip, name: string): Promise<string> {
@@ -154,7 +196,7 @@ async function processCity(city: CityGTFS) {
   console.log("Parsing routes.txt...");
   const routesRaw = parseCSV(await findGtfsFile(zip, "routes.txt"));
   const transitRoutes = routesRaw.filter(
-    (r) => r.route_type === "0" || r.route_type === "1" || r.route_type === "3"
+    (r) => r.route_type === "0" || r.route_type === "1" || r.route_type === "3",
   );
   const routeMap = new Map(transitRoutes.map((r) => [r.route_id, r]));
 
@@ -162,7 +204,10 @@ async function processCity(city: CityGTFS) {
 
   console.log("Parsing trips.txt...");
   const tripsRaw = parseCSV(await findGtfsFile(zip, "trips.txt"));
-  const tripsByRouteDir = new Map<string, { shapeId: string; headsign: string }[]>();
+  const tripsByRouteDir = new Map<
+    string,
+    { shapeId: string; headsign: string }[]
+  >();
   for (const trip of tripsRaw) {
     if (!routeMap.has(trip.route_id)) continue;
     const key = `${trip.route_id}|${trip.direction_id}`;
@@ -175,7 +220,10 @@ async function processCity(city: CityGTFS) {
 
   console.log("Parsing shapes.txt...");
   const shapesRaw = parseCSV(await findGtfsFile(zip, "shapes.txt"));
-  const shapePointsSeq = new Map<string, { seq: number; lat: number; lng: number }[]>();
+  const shapePointsSeq = new Map<
+    string,
+    { seq: number; lat: number; lng: number }[]
+  >();
   for (const s of shapesRaw) {
     const id = s.shape_id;
     if (!shapePointsSeq.has(id)) shapePointsSeq.set(id, []);
@@ -188,12 +236,18 @@ async function processCity(city: CityGTFS) {
   const shapesSorted = new Map<string, [number, number][]>();
   for (const [id, pts] of shapePointsSeq) {
     pts.sort((a, b) => a.seq - b.seq);
-    shapesSorted.set(id, pts.map((p) => [p.lat, p.lng]));
+    shapesSorted.set(
+      id,
+      pts.map((p) => [p.lat, p.lng]),
+    );
   }
 
   console.log("Parsing stops.txt...");
   const stopsRaw = parseCSV(await findGtfsFile(zip, "stops.txt"));
-  const stopsMap = new Map<string, { name: string; lat: number; lng: number }>();
+  const stopsMap = new Map<
+    string,
+    { name: string; lat: number; lng: number }
+  >();
   for (const s of stopsRaw) {
     stopsMap.set(s.stop_id, {
       name: s.stop_name,
@@ -220,8 +274,16 @@ async function processCity(city: CityGTFS) {
 
   console.log("Building route data...");
   const DEFAULT_COLORS = [
-    "#009EE0", "#E31837", "#00A550", "#F7A600", "#6D2077",
-    "#00B5E2", "#FF6720", "#005DA8", "#8DC63F", "#C8102E",
+    "#009EE0",
+    "#E31837",
+    "#00A550",
+    "#F7A600",
+    "#6D2077",
+    "#00B5E2",
+    "#FF6720",
+    "#005DA8",
+    "#8DC63F",
+    "#C8102E",
   ];
 
   const metroTerminals = new Map<string, Set<string>>();
@@ -271,9 +333,12 @@ async function processCity(city: CityGTFS) {
 
     const rawPath = shapesSorted.get(bestShapeId)!;
     const simplified = douglasPeucker(rawPath, 0.0001);
-    const path = simplified.map(([lat, lng]) => [roundCoord(lat), roundCoord(lng)] as [number, number]);
+    const path = simplified.map(
+      ([lat, lng]) => [roundCoord(lat), roundCoord(lng)] as [number, number],
+    );
 
-    const headsign = trips.find((t) => t.shapeId === bestShapeId)?.headsign ?? directionIdStr;
+    const headsign =
+      trips.find((t) => t.shapeId === bestShapeId)?.headsign ?? directionIdStr;
 
     let stops: StopData[] = [];
     for (const trip of tripsRaw) {
@@ -288,7 +353,11 @@ async function processCity(city: CityGTFS) {
           .map((ts) => {
             const stop = stopsMap.get(ts.stopId);
             if (!stop) return null;
-            return { name: stop.name, lat: roundCoord(stop.lat), lng: roundCoord(stop.lng) };
+            return {
+              name: stop.name,
+              lat: roundCoord(stop.lat),
+              lng: roundCoord(stop.lng),
+            };
           })
           .filter((s): s is StopData => s !== null);
         break;
@@ -297,7 +366,10 @@ async function processCity(city: CityGTFS) {
 
     const routeNumber = route.route_short_name ?? routeId;
     const rawColor = route.route_color ? `#${route.route_color}` : null;
-    const color = rawColor && rawColor !== "#" ? rawColor : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
+    const color =
+      rawColor && rawColor !== "#"
+        ? rawColor
+        : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
     if (!isSingleDir) colorIdx++;
 
     results.push({
@@ -306,12 +378,14 @@ async function processCity(city: CityGTFS) {
       direction: isSingleDir
         ? stops.length >= 2
           ? [stops[0].name, stops[stops.length - 1].name]
-              .map((n) => n.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+              .map((n) => cleanMetroTerminal(n, city.id))
               .join(" / ")
           : [...(metroTerminals.get(routeId) ?? [])]
-              .map((h) => h.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, ""))
+              .map((h) => cleanMetroTerminal(h, city.id))
               .join(" / ")
-        : headsign,
+        : city.id === "ttc"
+          ? cleanTtcHeadsign(headsign, route.route_long_name ?? "")
+          : headsign,
       directionId: isSingleDir ? 0 : directionId,
       name: route.route_long_name ?? "",
       color,
@@ -323,7 +397,8 @@ async function processCity(city: CityGTFS) {
 
   results.sort((a, b) => {
     const typeOrder = { metro: 0, streetcar: 1, bus: 2 };
-    if (a.routeType !== b.routeType) return typeOrder[a.routeType] - typeOrder[b.routeType];
+    if (a.routeType !== b.routeType)
+      return typeOrder[a.routeType] - typeOrder[b.routeType];
     const na = parseInt(a.routeNumber) || 0;
     const nb = parseInt(b.routeNumber) || 0;
     if (na !== nb) return na - nb;
@@ -336,13 +411,17 @@ async function processCity(city: CityGTFS) {
 }
 
 async function main() {
-  const cityArg = process.argv.find((a) => a.startsWith("--city="))?.split("=")[1];
+  const cityArg = process.argv
+    .find((a) => a.startsWith("--city="))
+    ?.split("=")[1];
   const citiesToProcess = cityArg
     ? CITIES.filter((c) => c.id === cityArg)
     : CITIES;
 
   if (citiesToProcess.length === 0) {
-    console.error(`Unknown city: ${cityArg}. Available: ${CITIES.map((c) => c.id).join(", ")}`);
+    console.error(
+      `Unknown city: ${cityArg}. Available: ${CITIES.map((c) => c.id).join(", ")}`,
+    );
     process.exit(1);
   }
 
