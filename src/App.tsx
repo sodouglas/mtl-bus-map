@@ -12,9 +12,18 @@ import { reverseGeocode } from "./geocoding";
 const DEFAULT_RADIUS = 200;
 
 const SELECTION_PALETTE = [
-  "#E63946", "#2A9D8F", "#7B2FF7", "#FF006E",
-  "#06D6A0", "#3A86FF", "#FB5607", "#8338EC",
-  "#00BBF9", "#F72585", "#1D3557", "#FF4CC3",
+  "#E63946",
+  "#2A9D8F",
+  "#7B2FF7",
+  "#FF006E",
+  "#06D6A0",
+  "#3A86FF",
+  "#FB5607",
+  "#8338EC",
+  "#00BBF9",
+  "#F72585",
+  "#1D3557",
+  "#FF4CC3",
 ];
 
 export default function App() {
@@ -30,8 +39,12 @@ export default function App() {
   const [enabledModes] = useState<Set<string>>(new Set(["bus", "metro"]));
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [pinModeActive, setPinModeActive] = useState(false);
-  const [pinTarget, setPinTarget] = useState<"origin" | "destination">("origin");
-  const [highlightedRouteIds, setHighlightedRouteIds] = useState<Set<string>>(new Set());
+  const [pinTarget, setPinTarget] = useState<"origin" | "destination">(
+    "origin",
+  );
+  const [highlightedRouteIds, setHighlightedRouteIds] = useState<Set<string>>(
+    new Set(),
+  );
   const [badgeBlink, setBadgeBlink] = useState<"found" | "empty" | null>(null);
   const [collapsedRadiusOpen, setCollapsedRadiusOpen] = useState(false);
   const [islandOpen, setIslandOpen] = useState(false);
@@ -78,7 +91,9 @@ export default function App() {
     if (orig && dest) {
       const nearOrigin = new Set(
         routes
-          .filter((r) => distanceToPolyline(orig.lat, orig.lng, r.path) <= origRadius)
+          .filter(
+            (r) => distanceToPolyline(orig.lat, orig.lng, r.path) <= origRadius,
+          )
           .map((r) => r.id),
       );
       matchingIds = new Set(
@@ -194,7 +209,9 @@ export default function App() {
       <div className="error-overlay">
         Failed to load routes: {error}
         <br />
-        <small>Run `npm run process-gtfs` first to generate the data file.</small>
+        <small>
+          Run `npm run process-gtfs` first to generate the data file.
+        </small>
       </div>
     );
   }
@@ -206,7 +223,10 @@ export default function App() {
   for (const id of selectedIds) {
     const route = routes.find((r) => r.id === id);
     if (route?.routeType === "metro") continue;
-    colorMap.set(id, SELECTION_PALETTE[paletteIndex % SELECTION_PALETTE.length]);
+    colorMap.set(
+      id,
+      SELECTION_PALETTE[paletteIndex % SELECTION_PALETTE.length],
+    );
     paletteIndex++;
   }
 
@@ -232,7 +252,11 @@ export default function App() {
     }
 
     if (destination) {
-      const idx = findClosestStop(destination.lat, destination.lng, route.stops);
+      const idx = findClosestStop(
+        destination.lat,
+        destination.lng,
+        route.stops,
+      );
       const stop = route.stops[idx];
       nearestStops.push({
         routeNumber: route.routeNumber,
@@ -247,7 +271,9 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}>
+      <div
+        className={`map-wrapper${pinModeActive ? " map-wrapper--pin-mode" : ""}`}
+      >
         <MapView
           selectedRoutes={selectedRoutes}
           colorMap={colorMap}
@@ -267,13 +293,40 @@ export default function App() {
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
         <div className="sidebar-header">
+          <button
+            className="sidebar-toggle"
+            onClick={() => {
+              setSidebarOpen((v) => !v);
+              setCollapsedRadiusOpen(false);
+              setIslandOpen(false);
+            }}
+            aria-label={sidebarOpen ? "Minimize panel" : "Expand panel"}
+            title={sidebarOpen ? "Minimize panel" : "Expand panel"}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 18 18"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            >
+              <rect x="1.5" y="1.5" width="15" height="15" rx="3" />
+              <line x1="7" y1="1.5" x2="7" y2="16.5" />
+            </svg>
+          </button>
           {!sidebarOpen && (
             <>
               <span
                 className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}${selectedIds.size > 0 ? " sidebar-badge-count--clickable" : ""}${islandOpen ? " sidebar-badge-count--active" : ""}`}
-                onClick={selectedIds.size > 0 ? () => {
-                  if (window.innerWidth < 768) setIslandOpen((v) => !v);
-                } : undefined}
+                onClick={
+                  selectedIds.size > 0
+                    ? () => {
+                        if (window.innerWidth < 768) setIslandOpen((v) => !v);
+                      }
+                    : undefined
+                }
               >
                 {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
               </span>
@@ -288,9 +341,20 @@ export default function App() {
                   }
                 }}
                 title={pinModeActive ? "Cancel pin" : "Drop a pin"}
-                aria-label={pinModeActive ? "Cancel pin" : "Drop a pin on the map"}
+                aria-label={
+                  pinModeActive ? "Cancel pin" : "Drop a pin on the map"
+                }
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
                   <circle cx="12" cy="9" r="2.5" />
                 </svg>
@@ -302,7 +366,14 @@ export default function App() {
                   title={`Search radius: ${originRadius}m`}
                   aria-label={`Adjust radius (${originRadius}m)`}
                 >
-                  <svg width="16" height="16" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.2"
+                  >
                     <circle cx="7" cy="7" r="5.5" />
                     <circle cx="7" cy="7" r="2" />
                   </svg>
@@ -310,13 +381,23 @@ export default function App() {
                 {collapsedRadiusOpen && !islandOpen && (
                   <div className="collapsed-radius-popover">
                     <div className="collapsed-radius-popover-section">
-                      <span className="collapsed-radius-popover-label">Origin</span>
-                      <RadiusControl radius={originRadius} onChange={handleOriginRadiusChange} />
+                      <span className="collapsed-radius-popover-label">
+                        Origin
+                      </span>
+                      <RadiusControl
+                        radius={originRadius}
+                        onChange={handleOriginRadiusChange}
+                      />
                     </div>
                     {destination && (
                       <div className="collapsed-radius-popover-section">
-                        <span className="collapsed-radius-popover-label">Destination</span>
-                        <RadiusControl radius={destinationRadius} onChange={handleDestinationRadiusChange} />
+                        <span className="collapsed-radius-popover-label">
+                          Destination
+                        </span>
+                        <RadiusControl
+                          radius={destinationRadius}
+                          onChange={handleDestinationRadiusChange}
+                        />
                       </div>
                     )}
                   </div>
@@ -324,21 +405,6 @@ export default function App() {
               </div>
             </>
           )}
-          <button
-            className="sidebar-toggle"
-            onClick={() => {
-              setSidebarOpen((v) => !v);
-              setCollapsedRadiusOpen(false);
-              setIslandOpen(false);
-            }}
-            aria-label={sidebarOpen ? "Minimize panel" : "Expand panel"}
-            title={sidebarOpen ? "Minimize panel" : "Expand panel"}
-          >
-            <svg width="16" height="16" viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-              <rect x="1.5" y="1.5" width="15" height="15" rx="3" />
-              <line x1="7" y1="1.5" x2="7" y2="16.5" />
-            </svg>
-          </button>
         </div>
         <div className="sidebar-body">
           <RouteList
@@ -375,17 +441,27 @@ export default function App() {
           />
         </div>
       </aside>
-      <div className={`selected-island${!sidebarOpen && islandOpen ? " selected-island--open" : ""}${sidebarOpen ? " selected-island--sidebar-open" : ""}`}>
+      <div
+        className={`selected-island${!sidebarOpen && islandOpen ? " selected-island--open" : ""}${sidebarOpen ? " selected-island--sidebar-open" : ""}`}
+      >
         {collapsedRadiusOpen && islandOpen && (
           <div className="collapsed-radius-popover collapsed-radius-popover--above-island">
             <div className="collapsed-radius-popover-section">
               <span className="collapsed-radius-popover-label">Origin</span>
-              <RadiusControl radius={originRadius} onChange={handleOriginRadiusChange} />
+              <RadiusControl
+                radius={originRadius}
+                onChange={handleOriginRadiusChange}
+              />
             </div>
             {destination && (
               <div className="collapsed-radius-popover-section">
-                <span className="collapsed-radius-popover-label">Destination</span>
-                <RadiusControl radius={destinationRadius} onChange={handleDestinationRadiusChange} />
+                <span className="collapsed-radius-popover-label">
+                  Destination
+                </span>
+                <RadiusControl
+                  radius={destinationRadius}
+                  onChange={handleDestinationRadiusChange}
+                />
               </div>
             )}
           </div>
