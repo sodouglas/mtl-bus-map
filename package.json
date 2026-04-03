@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "process-gtfs": "tsx scripts/process-gtfs.ts"
+    "process-gtfs": "tsx scripts/process-gtfs.ts",
+    "dev:fresh": "npm run process-gtfs && npm run dev"
   },
   "dependencies": {
     "@types/leaflet": "^1.9.21",

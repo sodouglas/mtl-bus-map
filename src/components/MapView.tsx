@@ -15,6 +15,7 @@ import { RouteArrows } from "./RouteArrows";
 import { RouteStopMarkers } from "./RouteStopMarkers";
 import { MapCenterPin } from "./MapCenterPin";
 import { MapClickHandler } from "./MapClickHandler";
+import { LocateButton } from "./LocateButton";
 
 interface Props {
   selectedRoutes: RouteData[];
@@ -33,6 +34,7 @@ interface Props {
   onPinCancel?: () => void;
   center: [number, number];
   defaultZoom: number;
+  onLocate?: () => void;
 }
 const ORIGIN_COLOR = "#3A86FF";
 const DESTINATION_COLOR = "#E63946";
@@ -77,6 +79,7 @@ export function MapView({
   onPinCancel,
   center,
   defaultZoom,
+  onLocate,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const skipMapClick = useRef(false);
@@ -121,6 +124,7 @@ export function MapView({
         zoomControl={false}
       >
         <ZoomControl position="topright" />
+        {onLocate && <LocateButton onLocate={onLocate} />}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
