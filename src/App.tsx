@@ -406,21 +406,20 @@ export default function App() {
               </button>
             ))}
           </div>
-          <button
-            type="button"
-            className="welcome-tour-btn"
-            onClick={() => setWelcomeOpen(true)}
-            title="Open welcome tour"
-            aria-label="Open welcome tour"
-          >
-            Tour
-          </button>
           {sidebarOpen && (
-            <img
-              src={`${import.meta.env.BASE_URL}logo_med.svg`}
-              alt="Routely"
-              className="sidebar-header-logo"
-            />
+            <button
+              type="button"
+              className="sidebar-header-logo-btn"
+              onClick={() => setWelcomeOpen(true)}
+              title="Open welcome tour"
+              aria-label="Open welcome tour"
+            >
+              <img
+                src={`${import.meta.env.BASE_URL}logo_med.svg`}
+                alt="Routely"
+                className="sidebar-header-logo"
+              />
+            </button>
           )}
           {!sidebarOpen && (
             <>

@@ -250,11 +250,34 @@ body,
   border-bottom: 1px solid var(--panel-border);
 }
 
+.sidebar-header-logo-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s ease;
+}
+
+.sidebar-header-logo-btn:hover {
+  background: var(--surface-hover);
+}
+
+.sidebar-header-logo-btn:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .sidebar-header-logo {
   width: 24px;
   height: 24px;
-  margin-left: auto;
-  flex-shrink: 0;
+  display: block;
   opacity: 0.85;
 }
 
@@ -296,28 +319,6 @@ body,
 
 .sidebar--minimized .city-switcher {
   display: none;
-}
-
-.welcome-tour-btn {
-  flex-shrink: 0;
-  padding: 4px 8px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-tertiary);
-  cursor: pointer;
-  letter-spacing: 0.02em;
-  transition:
-    background 0.15s ease,
-    color 0.15s ease;
-}
-
-.welcome-tour-btn:hover {
-  background: var(--surface-hover);
-  color: var(--text-secondary);
 }
 
 /* ── Sidebar Toggle (inside header) ── */
