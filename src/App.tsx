@@ -56,6 +56,11 @@ export default function App() {
   const [collapsedRadiusOpen, setCollapsedRadiusOpen] = useState(false);
   const [islandOpen, setIslandOpen] = useState(false);
   const [welcomeOpen, setWelcomeOpen] = useState(false);
+  const [mapFocus, setMapFocus] = useState<{
+    token: number;
+    lat: number;
+    lng: number;
+  } | null>(null);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -114,6 +119,15 @@ export default function App() {
     setEnabledModes(new Set(next.routeTypes));
     setPinModeActive(false);
     setShowStops(false);
+    setMapFocus(null);
+  }
+
+  function requestMapFocus(lat: number, lng: number) {
+    setMapFocus((prev) => ({
+      token: (prev?.token ?? 0) + 1,
+      lat,
+      lng,
+    }));
   }
 
   useEffect(() => {
@@ -207,6 +221,7 @@ export default function App() {
     setOrigin(location);
     recomputeSelection(location, destination, originRadius, destinationRadius);
     setPinModeActive(false);
+    requestMapFocus(location.lat, location.lng);
   }
 
   function handleOriginClear() {
@@ -218,6 +233,7 @@ export default function App() {
     setDestination(location);
     recomputeSelection(origin, location, originRadius, destinationRadius);
     setPinModeActive(false);
+    requestMapFocus(location.lat, location.lng);
   }
 
   function handleDestinationClear() {
@@ -350,6 +366,8 @@ export default function App() {
           center={city.center}
           defaultZoom={city.defaultZoom}
           onLocate={handleLocateRequest}
+          sidebarOpen={sidebarOpen}
+          mapFocus={mapFocus}
         />
       </div>
       <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>

@@ -2,12 +2,14 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useMap } from "react-leaflet";
 import L from "leaflet";
+import { flyLatLngToVisualCenter } from "../mapVisualLayout";
 
 interface Props {
   onLocate: () => void;
+  sidebarOpen: boolean;
 }
 
-export function LocateButton({ onLocate }: Props) {
+export function LocateButton({ onLocate, sidebarOpen }: Props) {
   const map = useMap();
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -51,15 +53,23 @@ export function LocateButton({ onLocate }: Props) {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setStatus("idle");
-        map.flyTo([pos.coords.latitude, pos.coords.longitude], 15, {
-          duration: 1,
+        const latlng: L.LatLngExpression = [
+          pos.coords.latitude,
+          pos.coords.longitude,
+        ];
+        const desktop = window.matchMedia("(min-width: 768px)").matches;
+        flyLatLngToVisualCenter(map, latlng, 15, {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          desktop,
+          sidebarOpen,
         });
         if (window.innerWidth < 768) onLocate();
       },
       () => showError(),
       { enableHighAccuracy: true, timeout: 10000 },
     );
-  }, [map, onLocate, status]);
+  }, [map, onLocate, sidebarOpen, status]);
 
   if (!container) return null;
 
