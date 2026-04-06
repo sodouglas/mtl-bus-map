@@ -17,6 +17,7 @@ import { RouteStopMarkers } from "./RouteStopMarkers";
 import { MapCenterPin } from "./MapCenterPin";
 import { MapClickHandler } from "./MapClickHandler";
 import { LocateButton } from "./LocateButton";
+import { UserLocationDot } from "./UserLocationDot";
 
 interface Props {
   selectedRoutes: RouteData[];
@@ -35,10 +36,12 @@ interface Props {
   onPinCancel?: () => void;
   center: [number, number];
   defaultZoom: number;
-  onLocate?: () => void;
   sidebarOpen?: boolean;
   /** Bumps when the user picks a location (search or pin) so the map recenters. */
   mapFocus?: { token: number; lat: number; lng: number } | null;
+  /** Last GPS fix from the locate control; shown as a dot on the map. */
+  userLocation?: { lat: number; lng: number } | null;
+  onUserLocation?: (lat: number, lng: number) => void;
 }
 const ORIGIN_COLOR = "#3A86FF";
 const DESTINATION_COLOR = "#E63946";
@@ -83,9 +86,10 @@ export function MapView({
   onPinCancel,
   center,
   defaultZoom,
-  onLocate,
   sidebarOpen = true,
   mapFocus = null,
+  userLocation = null,
+  onUserLocation,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const skipMapClick = useRef(false);
@@ -150,9 +154,10 @@ export function MapView({
         zoomControl={false}
       >
         <ZoomControl position="topright" />
-        {onLocate && (
-          <LocateButton onLocate={onLocate} sidebarOpen={sidebarOpen} />
-        )}
+        <LocateButton
+          sidebarOpen={sidebarOpen}
+          onUserLocation={onUserLocation}
+        />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -243,6 +248,9 @@ export function MapView({
             radius={destinationRadius}
             color={DESTINATION_COLOR}
           />
+        )}
+        {userLocation && (
+          <UserLocationDot lat={userLocation.lat} lng={userLocation.lng} />
         )}
         {nearestStops.length > 0 && <NearestStopMarkers stops={nearestStops} />}
         {pinModeActive && pinStyle === "click" && onPinConfirm && (

@@ -5,11 +5,11 @@ import L from "leaflet";
 import { flyLatLngToVisualCenter } from "../mapVisualLayout";
 
 interface Props {
-  onLocate: () => void;
   sidebarOpen: boolean;
+  onUserLocation?: (lat: number, lng: number) => void;
 }
 
-export function LocateButton({ onLocate, sidebarOpen }: Props) {
+export function LocateButton({ sidebarOpen, onUserLocation }: Props) {
   const map = useMap();
   const [container, setContainer] = useState<HTMLElement | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -64,12 +64,12 @@ export function LocateButton({ onLocate, sidebarOpen }: Props) {
           desktop,
           sidebarOpen,
         });
-        if (window.innerWidth < 768) onLocate();
+        onUserLocation?.(pos.coords.latitude, pos.coords.longitude);
       },
       () => showError(),
       { enableHighAccuracy: true, timeout: 10000 },
     );
-  }, [map, onLocate, sidebarOpen, status]);
+  }, [map, onUserLocation, sidebarOpen, status]);
 
   if (!container) return null;
 

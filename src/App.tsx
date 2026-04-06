@@ -61,6 +61,10 @@ export default function App() {
     lat: number;
     lng: number;
   } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
   const sidebarRef = useRef<HTMLElement | null>(null);
   const [mobileSidebarStackPx, setMobileSidebarStackPx] = useState<
@@ -142,6 +146,7 @@ export default function App() {
     setPinModeActive(false);
     setShowStops(false);
     setMapFocus(null);
+    setUserLocation(null);
   }
 
   function requestMapFocus(lat: number, lng: number) {
@@ -328,13 +333,6 @@ export default function App() {
     }
   }
 
-  function handleLocateRequest() {
-    const target = !origin ? "origin" : !destination ? "destination" : "origin";
-    setPinTarget(target);
-    setPinModeActive(true);
-    if (window.innerWidth < 768) setSidebarOpen(false);
-  }
-
   function handlePinCancel() {
     setPinModeActive(false);
   }
@@ -431,9 +429,10 @@ export default function App() {
           onPinCancel={handlePinCancel}
           center={city.center}
           defaultZoom={city.defaultZoom}
-          onLocate={handleLocateRequest}
           sidebarOpen={sidebarOpen}
           mapFocus={mapFocus}
+          userLocation={userLocation}
+          onUserLocation={(lat, lng) => setUserLocation({ lat, lng })}
         />
       </div>
       <aside

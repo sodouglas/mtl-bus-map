@@ -190,6 +190,66 @@ body,
   animation: locate-toast-in 0.25s ease-out;
 }
 
+/* Current GPS position (locate control) */
+.leaflet-div-icon.user-location-leaflet-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+.user-location-marker__dot {
+  width: 14px;
+  height: 14px;
+  margin: 5px;
+  box-sizing: content-box;
+  background: #0b75f0;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  animation: user-location-halo 2.2s ease-out infinite;
+}
+
+@keyframes user-location-halo {
+  0% {
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.35),
+      0 0 0 0 rgba(11, 117, 240, 0.45);
+  }
+
+  70% {
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.35),
+      0 0 0 14px rgba(11, 117, 240, 0);
+  }
+
+  100% {
+    box-shadow:
+      0 1px 4px rgba(0, 0, 0, 0.35),
+      0 0 0 0 rgba(11, 117, 240, 0);
+  }
+}
+
+.leaflet-tooltip.user-location-tooltip {
+  background: var(--panel-bg);
+  backdrop-filter: blur(var(--panel-blur));
+  -webkit-backdrop-filter: blur(var(--panel-blur));
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  box-shadow: var(--panel-shadow);
+  color: var(--text-primary);
+  font-family: "Figtree", system-ui, "Segoe UI", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+}
+
+.leaflet-tooltip-top.user-location-tooltip::before {
+  border-top-color: var(--panel-border);
+}
+
+.leaflet-tooltip-bottom.user-location-tooltip::before {
+  border-bottom-color: var(--panel-border);
+}
+
 @keyframes locate-toast-in {
   from {
     opacity: 0;
