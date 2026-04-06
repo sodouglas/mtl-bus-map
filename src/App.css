@@ -55,7 +55,10 @@ body,
 
 /* Route paths: suppress focus outline (UA draws a box around the path bbox, not the stroke). */
 .map-container.leaflet-container .leaflet-pane svg path.route-line:focus,
-.map-container.leaflet-container .leaflet-pane svg path.route-line:focus-visible {
+.map-container.leaflet-container
+  .leaflet-pane
+  svg
+  path.route-line:focus-visible {
   outline: none;
 }
 
@@ -257,7 +260,6 @@ body,
 }
 
 .sidebar-header-logo-btn {
-  margin-left: auto;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -295,6 +297,7 @@ body,
   background: var(--input-bg);
   border-radius: 8px;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .city-switcher-btn {
@@ -350,14 +353,22 @@ body,
   color: var(--text-secondary);
 }
 
-/* Badge count — visible when minimized and routes are selected */
+/* Badge count — after toggle; minimized always; mobile expanded when routes selected */
 .sidebar-badge-count {
-  flex: 1;
+  display: none;
+  align-items: center;
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
   padding: 0 4px;
   letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+.sidebar--minimized .sidebar-badge-count {
+  display: inline-flex;
+  flex: 1;
+  min-width: 0;
 }
 
 .sidebar-badge-count--clickable {
@@ -600,6 +611,14 @@ body,
 
 .selected-island-count:hover {
   color: var(--text-primary);
+}
+
+.selected-island-count--static {
+  cursor: default;
+}
+
+.selected-island-count--static:hover {
+  color: var(--text-secondary);
 }
 
 .selected-island-items {
@@ -1598,6 +1617,11 @@ body,
     font-size: 16px;
   }
 
+  .sidebar:not(.sidebar--minimized) .sidebar-badge-count--has-selection {
+    display: inline-flex;
+    flex: 0 1 auto;
+  }
+
   .sidebar-badge-count--clickable {
     padding: 2px 10px;
     border-radius: 8px;
@@ -1642,7 +1666,8 @@ body,
     min-width: 200px;
     max-width: calc(100vw - 2 * var(--panel-margin));
     height: auto;
-    max-height: 45vh;
+    max-height: 33.333vh;
+    max-height: calc(100dvh / 3);
     background: var(--panel-bg-solid);
     backdrop-filter: none;
     display: none;
@@ -1651,6 +1676,11 @@ body,
   .selected-island--open {
     display: flex;
     overflow: visible;
+  }
+
+  /* Fallback until measured; inline bottom overrides when JS runs */
+  .selected-island--open.selected-island--above-expanded-sidebar {
+    bottom: calc(var(--panel-margin) + 55vh + 8px);
   }
 
   .collapsed-radius-popover--above-island {

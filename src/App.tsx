@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
 import type { RouteData, SelectedLocation, NearestStop } from "./types";
 import type { CityConfig } from "./cityConfig";
@@ -62,6 +62,10 @@ export default function App() {
     lng: number;
   } | null>(null);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
+  const sidebarRef = useRef<HTMLElement | null>(null);
+  const [mobileSidebarStackPx, setMobileSidebarStackPx] = useState<
+    number | null
+  >(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -96,6 +100,24 @@ export default function App() {
       }
     });
   }, [loading, error]);
+
+  const [isMobile, setIsMobile] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 767px)").matches,
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const apply = () => setIsMobile(mq.matches);
+    apply();
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", apply);
+      return () => mq.removeEventListener("change", apply);
+    }
+    mq.addListener(apply);
+    return () => mq.removeListener(apply);
+  }, []);
 
   function dismissWelcome() {
     try {
@@ -138,6 +160,50 @@ export default function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [pinModeActive]);
+
+  const islandAboveExpandedSheet =
+    sidebarOpen && islandOpen && selectedIds.size > 0;
+
+  useLayoutEffect(() => {
+    const el = sidebarRef.current;
+    const mq = window.matchMedia("(max-width: 767px)");
+    const needStack = mq.matches && islandAboveExpandedSheet;
+
+    if (!needStack || !el) {
+      setMobileSidebarStackPx(null);
+      return;
+    }
+
+    const apply = () => setMobileSidebarStackPx(el.offsetHeight);
+
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+
+    const onResize = () => {
+      if (!window.matchMedia("(max-width: 767px)").matches) {
+        setMobileSidebarStackPx(null);
+        return;
+      }
+      apply();
+    };
+    window.addEventListener("resize", onResize);
+    if (typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", onResize);
+    } else {
+      mq.addListener(onResize);
+    }
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", onResize);
+      if (typeof mq.removeEventListener === "function") {
+        mq.removeEventListener("change", onResize);
+      } else {
+        mq.removeListener(onResize);
+      }
+    };
+  }, [islandAboveExpandedSheet]);
 
   function recomputeSelection(
     orig: SelectedLocation | null,
@@ -370,7 +436,10 @@ export default function App() {
           mapFocus={mapFocus}
         />
       </div>
-      <aside className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}>
+      <aside
+        ref={sidebarRef}
+        className={`sidebar${sidebarOpen ? "" : " sidebar--minimized"}`}
+      >
         <div className="sidebar-header">
           <button
             className="sidebar-toggle"
@@ -395,6 +464,24 @@ export default function App() {
               <line x1="7" y1="1.5" x2="7" y2="16.5" />
             </svg>
           </button>
+          <span
+            className={`sidebar-badge-count${selectedIds.size > 0 ? " sidebar-badge-count--has-selection" : ""}${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}${selectedIds.size > 0 ? " sidebar-badge-count--clickable" : ""}${islandOpen && selectedIds.size > 0 ? " sidebar-badge-count--active" : ""}`}
+            onClick={
+              selectedIds.size > 0
+                ? () => {
+                    if (!isMobile) return;
+                    if (islandOpen && !sidebarOpen) {
+                      setIslandOpen(false);
+                    } else {
+                      setSidebarOpen(false);
+                      setIslandOpen(true);
+                    }
+                  }
+                : undefined
+            }
+          >
+            {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
+          </span>
           <div className="city-switcher">
             {CITY_LIST.map((c) => (
               <button
@@ -423,18 +510,6 @@ export default function App() {
           )}
           {!sidebarOpen && (
             <>
-              <span
-                className={`sidebar-badge-count${badgeBlink === "found" ? " badge-blink-found" : badgeBlink === "empty" ? " badge-blink-empty" : ""}${selectedIds.size > 0 ? " sidebar-badge-count--clickable" : ""}${islandOpen ? " sidebar-badge-count--active" : ""}`}
-                onClick={
-                  selectedIds.size > 0
-                    ? () => {
-                        if (window.innerWidth < 768) setIslandOpen((v) => !v);
-                      }
-                    : undefined
-                }
-              >
-                {`${selectedIds.size} route${selectedIds.size !== 1 ? "s" : ""}`}
-              </span>
               <button
                 className={`collapsed-pin-btn${pinModeActive ? " collapsed-pin-btn--active" : ""}`}
                 onClick={() => {
@@ -549,7 +624,14 @@ export default function App() {
         </div>
       </aside>
       <div
-        className={`selected-island${!sidebarOpen && islandOpen ? " selected-island--open" : ""}${sidebarOpen ? " selected-island--sidebar-open" : ""}`}
+        className={`selected-island${islandOpen && (!sidebarOpen || selectedIds.size > 0) ? " selected-island--open" : ""}${sidebarOpen && !(islandOpen && selectedIds.size > 0) ? " selected-island--sidebar-open" : ""}${islandAboveExpandedSheet ? " selected-island--above-expanded-sidebar" : ""}`}
+        style={
+          mobileSidebarStackPx != null && islandAboveExpandedSheet
+            ? {
+                bottom: `calc(var(--panel-margin) + ${mobileSidebarStackPx}px + 8px)`,
+              }
+            : undefined
+        }
       >
         {collapsedRadiusOpen && islandOpen && (
           <div className="collapsed-radius-popover collapsed-radius-popover--above-island">
@@ -585,6 +667,7 @@ export default function App() {
           onToggleShowStops={() => setShowStops((s) => !s)}
           hasBothEndpoints={hasBothEndpoints}
           badgeBlink={badgeBlink}
+          allowHeaderCollapse={!isMobile}
         />
       </div>
       {welcomeOpen ? <WelcomeModal onDismiss={dismissWelcome} /> : null}

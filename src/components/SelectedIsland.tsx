@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { RouteData } from "../types";
 import { RouteItem } from "./RouteItem";
 
@@ -14,6 +14,8 @@ interface Props {
   onToggleShowStops: () => void;
   hasBothEndpoints?: boolean;
   badgeBlink?: "found" | "empty" | null;
+  /** When false (e.g. mobile), list is always expanded; chevron / count do not collapse. */
+  allowHeaderCollapse?: boolean;
 }
 
 export function SelectedIsland({
@@ -28,8 +30,13 @@ export function SelectedIsland({
   onToggleShowStops,
   hasBothEndpoints = false,
   badgeBlink = null,
+  allowHeaderCollapse = true,
 }: Props) {
   const [expanded, setExpanded] = useState(true);
+
+  useEffect(() => {
+    if (!allowHeaderCollapse) setExpanded(true);
+  }, [allowHeaderCollapse]);
 
   const selectedRoutes = routes.filter((r) => selectedIds.has(r.id));
   const selectedMetro = selectedRoutes.filter((r) => r.routeType === "metro");
@@ -38,34 +45,48 @@ export function SelectedIsland({
 
   if (selectedIds.size === 0) return null;
 
+  const listVisible = allowHeaderCollapse ? expanded : true;
+  const contentCollapsed = allowHeaderCollapse && !expanded;
+
   return (
-    <div className={`selected-island-content${expanded ? "" : " selected-island-content--collapsed"}`}>
+    <div
+      className={`selected-island-content${contentCollapsed ? " selected-island-content--collapsed" : ""}`}
+    >
       <div className="selected-island-header">
-        <button
-          className={`selected-island-toggle${expanded ? " selected-island-toggle--open" : ""}`}
-          onClick={() => setExpanded((v) => !v)}
-          aria-label={expanded ? "Collapse selected routes" : "Expand selected routes"}
-        >
-          <svg width="10" height="10" viewBox="0 0 10 10">
-            <path
-              d="M3 1l4 4-4 4"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-        </button>
+        {allowHeaderCollapse ? (
+          <button
+            type="button"
+            className={`selected-island-toggle${expanded ? " selected-island-toggle--open" : ""}`}
+            onClick={() => setExpanded((v) => !v)}
+            aria-label={
+              expanded ? "Collapse selected routes" : "Expand selected routes"
+            }
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10">
+              <path
+                d="M3 1l4 4-4 4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : null}
         <span
           className={`selected-island-count${
+            allowHeaderCollapse ? "" : " selected-island-count--static"
+          }${
             badgeBlink === "found"
               ? " badge-blink-found"
               : badgeBlink === "empty"
                 ? " badge-blink-empty"
                 : ""
           }`}
-          onClick={() => setExpanded((v) => !v)}
+          onClick={
+            allowHeaderCollapse ? () => setExpanded((v) => !v) : undefined
+          }
         >
           {hasBothEndpoints
             ? `${selectedIds.size} connecting route${selectedIds.size !== 1 ? "s" : ""}`
@@ -85,7 +106,7 @@ export function SelectedIsland({
           Show stops
         </label>
       </div>
-      {expanded && (
+      {listVisible && (
         <div className="selected-island-items">
           {hasBothTypes && (
             <div className="selected-island-group-label">Metro</div>
