@@ -8,6 +8,7 @@ import {
   useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
+import { flyLatLngToVisualCenter } from "../mapVisualLayout";
 import type { RouteData, SelectedLocation, NearestStop } from "../types";
 import { LocationMarker } from "./LocationMarker";
 import { NearestStopMarkers } from "./NearestStopMarkers";
@@ -35,6 +36,10 @@ interface Props {
   center: [number, number];
   defaultZoom: number;
   onLocate?: () => void;
+  /** Sidebar open state for placing the map focus in the visible area. */
+  sidebarOpen?: boolean;
+  /** Bumps when the user picks a location (search or pin) so the map recenters. */
+  mapFocus?: { token: number; lat: number; lng: number } | null;
 }
 const ORIGIN_COLOR = "#3A86FF";
 const DESTINATION_COLOR = "#E63946";
@@ -80,9 +85,12 @@ export function MapView({
   center,
   defaultZoom,
   onLocate,
+  sidebarOpen = true,
+  mapFocus = null,
 }: Props) {
   const mapRef = useRef<L.Map | null>(null);
   const skipMapClick = useRef(false);
+  const lastFocusToken = useRef(0);
 
   useEffect(() => {
     const container = mapRef.current?.getContainer();
@@ -107,6 +115,25 @@ export function MapView({
     }
   }, [highlightedRouteIds, selectedRoutes]);
 
+  useEffect(() => {
+    if (!mapFocus || mapFocus.token === lastFocusToken.current) return;
+    lastFocusToken.current = mapFocus.token;
+    const map = mapRef.current;
+    if (!map) return;
+    const desktop = window.matchMedia("(min-width: 768px)").matches;
+    return flyLatLngToVisualCenter(
+      map,
+      [mapFocus.lat, mapFocus.lng],
+      map.getZoom(),
+      {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        desktop,
+        sidebarOpen,
+      },
+    );
+  }, [mapFocus, sidebarOpen]);
+
   function handleConfirm() {
     if (mapRef.current && onPinConfirm) {
       const { lat, lng } = mapRef.current.getCenter();
@@ -124,7 +151,9 @@ export function MapView({
         zoomControl={false}
       >
         <ZoomControl position="topright" />
-        {onLocate && <LocateButton onLocate={onLocate} />}
+        {onLocate && (
+          <LocateButton onLocate={onLocate} sidebarOpen={sidebarOpen} />
+        )}
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
