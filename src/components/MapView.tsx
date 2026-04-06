@@ -36,7 +36,6 @@ interface Props {
   center: [number, number];
   defaultZoom: number;
   onLocate?: () => void;
-  /** Sidebar open state for placing the map focus in the visible area. */
   sidebarOpen?: boolean;
   /** Bumps when the user picks a location (search or pin) so the map recenters. */
   mapFocus?: { token: number; lat: number; lng: number } | null;
@@ -121,7 +120,7 @@ export function MapView({
     const map = mapRef.current;
     if (!map) return;
     const desktop = window.matchMedia("(min-width: 768px)").matches;
-    return flyLatLngToVisualCenter(
+    flyLatLngToVisualCenter(
       map,
       [mapFocus.lat, mapFocus.lng],
       map.getZoom(),
