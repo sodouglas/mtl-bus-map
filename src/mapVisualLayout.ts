@@ -7,11 +7,25 @@ export type MapLayoutOptions = {
   sidebarOpen: boolean;
 };
 
+/** Reads a CSS length from :root (e.g. `340px` → 340). */
+function readCssLengthPx(varName: string, fallback: number): number {
+  if (typeof document === "undefined") return fallback;
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(varName)
+    .trim();
+  const n = parseFloat(raw);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 /**
  * Viewport point where a selected location should appear:
- *   Desktop (any)     → center of the right 2/3 of the screen
- *   Mobile + open     → center of the top half (above the sheet)
- *   Mobile + collapsed → no pan (location is already centered)
+ *   Desktop + expanded → horizontal center of the map strip beside the sidebar:
+ *     x = (viewport width + panel-margin + panel-width) / 2
+ *     (matches centering in the region after subtracting `--panel-width` from the
+ *     usable width, offset by the floating panel’s left margin)
+ *   Desktop + minimized → geometric horizontal center (full-width map)
+ *   Mobile + open        → center of the top band (above the sheet)
+ *   Mobile + collapsed   → no pan (location is already centered)
  *
  * Returns null when no pan is needed.
  */
@@ -24,7 +38,12 @@ export function getPreferredMapPointPx(
     if (!sidebarOpen) return null;
     return { x: W / 2, y: H / 4 };
   }
-  return { x: W * (2 / 3), y: H / 2 };
+  if (!sidebarOpen) {
+    return { x: W / 2, y: H / 2 };
+  }
+  const panelMargin = readCssLengthPx("--panel-margin", 12);
+  const panelWidth = readCssLengthPx("--panel-width", 340);
+  return { x: (W + panelMargin + panelWidth) / 2, y: H / 2 };
 }
 
 /**
@@ -55,5 +74,9 @@ export function flyLatLngToVisualCenter(
   const targetPx = crs.latLngToPoint(L.latLng(latlng), targetZoom);
   const adjustedCenter = crs.pointToLatLng(targetPx.add(offsetPx), targetZoom);
 
-  map.panTo(adjustedCenter, { animate: true, duration: 0.5, easeLinearity: 0.5 });
+  map.panTo(adjustedCenter, {
+    animate: true,
+    duration: 0.5,
+    easeLinearity: 0.5,
+  });
 }
