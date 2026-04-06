@@ -10,6 +10,8 @@ import { LocationSearchPair } from "./components/LocationSearchPair";
 import { RadiusControl } from "./components/RadiusControl";
 import { distanceToPolyline, findClosestStop } from "./geometry";
 import { reverseGeocode } from "./geocoding";
+import { WelcomeModal } from "./components/WelcomeModal";
+import { WELCOME_DISMISSED_KEY } from "./welcomeSlides";
 
 const DEFAULT_RADIUS = 200;
 
@@ -53,6 +55,7 @@ export default function App() {
   const [badgeBlink, setBadgeBlink] = useState<"found" | "empty" | null>(null);
   const [collapsedRadiusOpen, setCollapsedRadiusOpen] = useState(false);
   const [islandOpen, setIslandOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(false);
   const blinkTimer = useRef<ReturnType<typeof setTimeout>>(null);
 
   useEffect(() => {
@@ -75,6 +78,28 @@ export default function App() {
       });
     return () => controller.abort();
   }, [city]);
+
+  useEffect(() => {
+    if (loading || error) return;
+    queueMicrotask(() => {
+      try {
+        if (!localStorage.getItem(WELCOME_DISMISSED_KEY)) {
+          setWelcomeOpen(true);
+        }
+      } catch {
+        /* private mode */
+      }
+    });
+  }, [loading, error]);
+
+  function dismissWelcome() {
+    try {
+      localStorage.setItem(WELCOME_DISMISSED_KEY, "1");
+    } catch {
+      /* private mode */
+    }
+    setWelcomeOpen(false);
+  }
 
   function handleCityChange(next: CityConfig) {
     if (next.id === city.id) return;
@@ -363,6 +388,15 @@ export default function App() {
               </button>
             ))}
           </div>
+          <button
+            type="button"
+            className="welcome-tour-btn"
+            onClick={() => setWelcomeOpen(true)}
+            title="Open welcome tour"
+            aria-label="Open welcome tour"
+          >
+            Tour
+          </button>
           {sidebarOpen && (
             <img
               src={`${import.meta.env.BASE_URL}logo_med.svg`}
@@ -536,6 +570,7 @@ export default function App() {
           badgeBlink={badgeBlink}
         />
       </div>
+      {welcomeOpen ? <WelcomeModal onDismiss={dismissWelcome} /> : null}
     </div>
   );
 }
