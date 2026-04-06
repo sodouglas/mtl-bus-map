@@ -53,6 +53,12 @@ body,
   cursor: crosshair !important;
 }
 
+/* Route paths: suppress focus outline (UA draws a box around the path bbox, not the stroke). */
+.map-container.leaflet-container .leaflet-pane svg path.route-line:focus,
+.map-container.leaflet-container .leaflet-pane svg path.route-line:focus-visible {
+  outline: none;
+}
+
 /* Leaflet zoom control — match sidebar design language */
 .leaflet-control-zoom {
   border: 1px solid var(--panel-border) !important;
