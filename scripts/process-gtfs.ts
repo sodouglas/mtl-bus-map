@@ -333,13 +333,17 @@ function roundCoord(n: number): number {
 // ── Route type mapping ─────────────────────────────────────────────────────────
 
 function routeTypeFromGtfs(type: string): "bus" | "metro" | "streetcar" | "train" | null {
-  switch (type) {
-    case "0": return "streetcar";
-    case "1": return "metro";
-    case "2": return "train";
-    case "3": return "bus";
-    default:  return null;
-  }
+  const n = parseInt(type);
+  if (n === 0) return "streetcar";
+  if (n === 1) return "metro";
+  if (n === 2) return "train";
+  if (n === 3) return "bus";
+  // Extended GTFS types (HVT spec)
+  if (n >= 700 && n < 800) return "bus";    // Bus services
+  if (n >= 900 && n < 1000) return "streetcar"; // Tram/light rail
+  if (n >= 100 && n < 200) return "train";  // Regional/commuter rail
+  if (n === 400 || n === 401 || n === 402) return "metro"; // Metro/subway
+  return null;
 }
 
 function cleanMetroTerminal(name: string, agencyId: string): string {
@@ -391,7 +395,7 @@ async function processAgency(
   console.log(`  Parsing routes.txt [${agencyId}]...`);
   const routesRaw = parseCSV(await findGtfsFile(zip, "routes.txt"));
   const transitRoutes = routesRaw.filter(
-    (r) => r.route_type === "0" || r.route_type === "1" || r.route_type === "2" || r.route_type === "3",
+    (r) => routeTypeFromGtfs(r.route_type) !== null,
   );
   const routeMap = new Map(transitRoutes.map((r) => [r.route_id, r]));
   console.log(`    ${agencyId}: ${transitRoutes.length} transit routes`);
