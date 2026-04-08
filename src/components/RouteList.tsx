@@ -8,6 +8,7 @@ const TAB_LABELS: Record<RouteMode, string> = {
   metro: "Metro",
   streetcar: "Streetcar",
   bus: "Bus",
+  train: "Train",
 };
 
 interface Props {
@@ -37,6 +38,9 @@ export function RouteList({
   for (const mode of availableModes) {
     routesByType.set(mode, routes.filter((r) => r.routeType === mode));
   }
+
+  const agencies = new Set(routes.map((r) => r.agency).filter(Boolean));
+  const showAgency = agencies.size > 1;
 
   const searchableTabs = new Set<RouteMode>(["bus", "streetcar"]);
   const q = query.toLowerCase();
@@ -106,6 +110,7 @@ export function RouteList({
                 selectedIds.has(route.id) ? colorMap.get(route.id) : undefined
               }
               onToggle={onToggle}
+              showAgency={showAgency}
             />
           ));
         })()}

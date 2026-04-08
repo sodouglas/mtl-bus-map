@@ -7,11 +7,25 @@ interface Props {
   onToggle: (id: string) => void;
   highlighted?: boolean;
   onHighlightRoute?: (id: string | null) => void;
+  showAgency?: boolean;
 }
 
-export function RouteItem({ route, selected, colorOverride, onToggle, highlighted, onHighlightRoute }: Props) {
+export function RouteItem({ route, selected, colorOverride, onToggle, highlighted, onHighlightRoute, showAgency }: Props) {
   const dotColor = colorOverride ?? route.color;
   const className = `route-item${selected ? " route-item--selected" : ""}${highlighted ? " route-item--highlighted" : ""}`;
+
+  const label = (
+    <span className="route-label">
+      <strong>{route.routeNumber}</strong>
+      {showAgency && route.agency ? (
+        <span className="route-agency-badge">{route.agency}</span>
+      ) : null}
+      {route.direction ? ` ${route.direction}` : ""}
+      {route.name && route.routeType !== "metro" && route.routeType !== "train" ? (
+        <small> {route.name}</small>
+      ) : null}
+    </span>
+  );
 
   if (onHighlightRoute) {
     return (
@@ -25,13 +39,7 @@ export function RouteItem({ route, selected, colorOverride, onToggle, highlighte
         onClick={() => onHighlightRoute(route.id)}
       >
         <span className="route-color-dot" style={{ backgroundColor: dotColor }} />
-        <span className="route-label">
-          <strong>{route.routeNumber}</strong>
-          {route.direction ? ` ${route.direction}` : ""}
-          {route.name && route.routeType !== "metro" ? (
-            <small> {route.name}</small>
-          ) : null}
-        </span>
+        {label}
       </div>
     );
   }
@@ -52,13 +60,7 @@ export function RouteItem({ route, selected, colorOverride, onToggle, highlighte
         className="sr-only"
       />
       <span className="route-color-dot" style={{ backgroundColor: dotColor }} />
-      <span className="route-label">
-        <strong>{route.routeNumber}</strong>
-        {route.direction ? ` ${route.direction}` : ""}
-        {route.name && route.routeType !== "metro" ? (
-          <small> {route.name}</small>
-        ) : null}
-      </span>
+      {label}
     </label>
   );
 }

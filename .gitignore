@@ -26,6 +26,9 @@ dist-ssr
 # Generated GTFS data
 public/routes-data*.json
 
+# GTFS processing cache
+scripts/.gtfs-cache/
+
 # Git worktrees
 .claude/worktrees/
 .superpowers/
