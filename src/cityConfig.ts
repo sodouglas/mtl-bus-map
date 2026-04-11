@@ -9,18 +9,18 @@ export interface CityConfig {
   routeTypes: RouteMode[];
 }
 
-export type RouteMode = "metro" | "streetcar" | "bus";
+export type RouteMode = "metro" | "streetcar" | "bus" | "train";
 
 export const CITIES: Record<string, CityConfig> = {
   stm: {
     id: "stm",
     name: "Montreal",
-    agency: "STM",
+    agency: "STM / RTL / STL / exo",
     center: [45.5017, -73.5673],
-    defaultZoom: 12,
-    bbox: "-73.98,45.40,-73.47,45.70",
-    dataFile: "routes-data-stm.json",
-    routeTypes: ["metro", "bus"],
+    defaultZoom: 11,
+    bbox: "-74.1,45.30,-73.25,45.78",
+    dataFile: "routes-data-montreal.json",
+    routeTypes: ["metro", "bus", "train"],
   },
   ttc: {
     id: "ttc",

@@ -1,6 +1,8 @@
 name: Refresh GTFS Data
 
 on:
+  schedule:
+    - cron: "0 6 * * 1"  # every Monday at 6am UTC
   workflow_dispatch:
 
 permissions:
@@ -17,18 +19,25 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Restore GTFS processing cache
+        uses: actions/cache@v4
+        with:
+          path: scripts/.gtfs-cache
+          key: gtfs-cache-${{ runner.os }}
+          restore-keys: gtfs-cache-
+
       - run: npm ci
 
       - run: npm run process-gtfs
 
       - name: Commit updated route data
         run: |
-          git diff --quiet public/routes-data-stm.json public/routes-data-ttc.json && {
+          git diff --quiet public/routes-data-montreal.json public/routes-data-ttc.json && {
             echo "Route data is already up to date"
             exit 0
           }
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f public/routes-data-stm.json public/routes-data-ttc.json
+          git add -f public/routes-data-montreal.json public/routes-data-ttc.json
           git commit -m "Update route data with latest GTFS data"
           git push

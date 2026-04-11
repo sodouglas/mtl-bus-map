@@ -488,7 +488,7 @@ export default function App() {
                 className={`city-switcher-btn${c.id === city.id ? " city-switcher-btn--active" : ""}`}
                 onClick={() => handleCityChange(c)}
               >
-                {c.agency}
+                {c.name}
               </button>
             ))}
           </div>

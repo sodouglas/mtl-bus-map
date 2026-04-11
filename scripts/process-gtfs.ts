@@ -1,28 +1,108 @@
 import JSZip from "jszip";
-import { writeFileSync } from "fs";
+import { writeFileSync, readFileSync, mkdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const CACHE_DIR = join(__dirname, ".gtfs-cache");
+const ETAG_FILE = join(CACHE_DIR, "etags.json");
+
+interface AgencySource {
+  agencyId: string;
+  agencyName: string;
+  url: string;
+}
 
 interface CityGTFS {
   id: string;
   name: string;
-  url: string;
+  sources: AgencySource[];
   output: string;
 }
 
 const CITIES: CityGTFS[] = [
   {
     id: "stm",
-    name: "Montreal STM",
-    url: "https://www.stm.info/sites/default/files/gtfs/gtfs_stm.zip",
-    output: join(__dirname, "../public/routes-data-stm.json"),
+    name: "Montreal (Greater)",
+    sources: [
+      {
+        agencyId: "stm",
+        agencyName: "STM",
+        url: "https://www.stm.info/sites/default/files/gtfs/gtfs_stm.zip",
+      },
+      {
+        agencyId: "rtl",
+        agencyName: "RTL",
+        url: "https://www.rtl-longueuil.qc.ca/transit/latestfeed/RTL.zip",
+      },
+      {
+        agencyId: "stl",
+        agencyName: "STL",
+        url: "https://www.stlaval.ca/datas/opendata/GTF_STL.zip",
+      },
+      {
+        agencyId: "exo-trains",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/trains/google_transit.zip",
+      },
+      {
+        agencyId: "exo-citcrc",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/citcrc/google_transit.zip",
+      },
+      {
+        agencyId: "exo-citla",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/citla/google_transit.zip",
+      },
+      {
+        agencyId: "exo-citpi",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/citpi/google_transit.zip",
+      },
+      {
+        agencyId: "exo-citsv",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/citsv/google_transit.zip",
+      },
+      {
+        agencyId: "exo-citso",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/citso/google_transit.zip",
+      },
+      {
+        agencyId: "exo-citvr",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/citvr/google_transit.zip",
+      },
+      {
+        agencyId: "exo-mrclasso",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/mrclasso/google_transit.zip",
+      },
+      {
+        agencyId: "exo-mrclm",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/mrclm/google_transit.zip",
+      },
+      {
+        agencyId: "exo-omitsju",
+        agencyName: "exo",
+        url: "https://exo.quebec/xdata/omitsju/google_transit.zip",
+      },
+    ],
+    output: join(__dirname, "../public/routes-data-montreal.json"),
   },
   {
     id: "ttc",
     name: "Toronto TTC",
-    url: "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/7795b45e-e65a-4465-81fc-c36b9dfff169/resource/cfb6b2b8-6191-41e3-bda1-b175c51148cb/download/TTC%20Routes%20and%20Schedules%20Data.zip",
+    sources: [
+      {
+        agencyId: "ttc",
+        agencyName: "TTC",
+        url: "https://ckan0.cf.opendata.inter.prod-toronto.ca/dataset/7795b45e-e65a-4465-81fc-c36b9dfff169/resource/cfb6b2b8-6191-41e3-bda1-b175c51148cb/download/TTC%20Routes%20and%20Schedules%20Data.zip",
+      },
+    ],
     output: join(__dirname, "../public/routes-data-ttc.json"),
   },
 ];
@@ -40,10 +120,127 @@ interface RouteData {
   directionId: number;
   name: string;
   color: string;
-  routeType: "bus" | "metro" | "streetcar";
+  routeType: "bus" | "metro" | "streetcar" | "train";
+  agency: string;
   path: [number, number][];
   stops: StopData[];
 }
+
+interface ETagStore {
+  [url: string]: { etag?: string; lastModified?: string };
+}
+
+// ── Cache helpers ──────────────────────────────────────────────────────────────
+
+function ensureCacheDir() {
+  if (!existsSync(CACHE_DIR)) mkdirSync(CACHE_DIR, { recursive: true });
+}
+
+function loadETagStore(): ETagStore {
+  try {
+    if (existsSync(ETAG_FILE)) {
+      return JSON.parse(readFileSync(ETAG_FILE, "utf-8")) as ETagStore;
+    }
+  } catch {
+    // ignore corrupt cache
+  }
+  return {};
+}
+
+function saveETagStore(store: ETagStore) {
+  ensureCacheDir();
+  writeFileSync(ETAG_FILE, JSON.stringify(store, null, 2));
+}
+
+function agencyCacheFile(agencyId: string) {
+  return join(CACHE_DIR, `${agencyId}.json`);
+}
+
+function loadAgencyCache(agencyId: string): RouteData[] | null {
+  const file = agencyCacheFile(agencyId);
+  try {
+    if (existsSync(file)) {
+      return JSON.parse(readFileSync(file, "utf-8")) as RouteData[];
+    }
+  } catch {
+    // ignore corrupt cache
+  }
+  return null;
+}
+
+function saveAgencyCache(agencyId: string, routes: RouteData[]) {
+  ensureCacheDir();
+  writeFileSync(agencyCacheFile(agencyId), JSON.stringify(routes));
+}
+
+// ── Network helpers ────────────────────────────────────────────────────────────
+
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry(
+  url: string,
+  opts: RequestInit = {},
+  retries = 3,
+): Promise<Response> {
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(url, opts);
+      if (res.ok || res.status === 304 || res.status === 404) return res;
+      // Retry on 5xx
+      if (res.status >= 500 && attempt < retries) {
+        console.warn(`  HTTP ${res.status} on attempt ${attempt}/${retries}, retrying...`);
+        await sleep(2 ** attempt * 1000);
+        continue;
+      }
+      return res;
+    } catch (err) {
+      lastErr = err;
+      if (attempt < retries) {
+        console.warn(`  Network error on attempt ${attempt}/${retries}: ${err}, retrying...`);
+        await sleep(2 ** attempt * 1000);
+      }
+    }
+  }
+  throw lastErr ?? new Error(`Failed to fetch ${url} after ${retries} attempts`);
+}
+
+// Returns ArrayBuffer on new data, or null if the source is unchanged (304)
+async function downloadGtfs(
+  source: AgencySource,
+  etagStore: ETagStore,
+): Promise<ArrayBuffer | null> {
+  const cached = etagStore[source.url];
+  const headers: Record<string, string> = {};
+  if (cached?.etag) headers["If-None-Match"] = cached.etag;
+  if (cached?.lastModified) headers["If-Modified-Since"] = cached.lastModified;
+
+  console.log(`  Downloading ${source.agencyName} (${source.agencyId})...`);
+  const res = await fetchWithRetry(source.url, { headers });
+
+  if (res.status === 304) {
+    console.log(`  ${source.agencyId}: unchanged (304), using cached data`);
+    return null;
+  }
+
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} for ${source.agencyId} (${source.url})`);
+  }
+
+  // Update ETag store
+  const newEtag = res.headers.get("ETag");
+  const newLastMod = res.headers.get("Last-Modified");
+  etagStore[source.url] = {
+    ...(newEtag ? { etag: newEtag } : {}),
+    ...(newLastMod ? { lastModified: newLastMod } : {}),
+  };
+
+  return res.arrayBuffer();
+}
+
+// ── CSV parser ─────────────────────────────────────────────────────────────────
 
 function parseCSV(content: string): Record<string, string>[] {
   const lines = content.split("\n").map((l) => l.trimEnd().replace(/\r$/, ""));
@@ -81,6 +278,8 @@ function splitCSVLine(line: string): string[] {
   result.push(current);
   return result;
 }
+
+// ── Geometry ───────────────────────────────────────────────────────────────────
 
 function perpendicularDistance(
   point: [number, number],
@@ -131,21 +330,24 @@ function roundCoord(n: number): number {
   return Math.round(n * 100000) / 100000;
 }
 
-function routeTypeFromGtfs(type: string): "bus" | "metro" | "streetcar" | null {
-  switch (type) {
-    case "0":
-      return "streetcar";
-    case "1":
-      return "metro";
-    case "3":
-      return "bus";
-    default:
-      return null;
-  }
+// ── Route type mapping ─────────────────────────────────────────────────────────
+
+function routeTypeFromGtfs(type: string): "bus" | "metro" | "streetcar" | "train" | null {
+  const n = parseInt(type);
+  if (n === 0) return "streetcar";
+  if (n === 1) return "metro";
+  if (n === 2) return "train";
+  if (n === 3) return "bus";
+  // Extended GTFS types (HVT spec)
+  if (n >= 700 && n < 800) return "bus";    // Bus services
+  if (n >= 900 && n < 1000) return "streetcar"; // Tram/light rail
+  if (n >= 100 && n < 200) return "train";  // Regional/commuter rail
+  if (n === 400 || n === 401 || n === 402) return "metro"; // Metro/subway
+  return null;
 }
 
-function cleanMetroTerminal(name: string, cityId: string): string {
-  if (cityId === "ttc") {
+function cleanMetroTerminal(name: string, agencyId: string): string {
+  if (agencyId === "ttc") {
     return name.replace(/\s+Station(?:\s*-\s*.+)?$/i, "");
   }
   return name.replace(/^Station\s+/i, "").replace(/\s+-Zone\s+\w+$/i, "");
@@ -155,25 +357,22 @@ function cleanTtcHeadsign(headsign: string, routeLongName: string): string {
   if (routeLongName && headsign.startsWith(routeLongName + " ")) {
     return headsign.slice(routeLongName.length).trim();
   }
-
   const towardsMatch = headsign.match(/\s+(towards\s+.+)$/i);
   if (towardsMatch) {
     const towardsPart = towardsMatch[1];
     const prefix = headsign.slice(0, towardsMatch.index!);
     const dirMatch = prefix.match(/^(North|South|East|West)\s*-\s*/i);
-    if (dirMatch) {
-      return `${dirMatch[1]} ${towardsPart}`;
-    }
+    if (dirMatch) return `${dirMatch[1]} ${towardsPart}`;
     return towardsPart;
   }
-
   return headsign;
 }
+
+// ── GTFS zip file lookup ───────────────────────────────────────────────────────
 
 async function findGtfsFile(zip: JSZip, name: string): Promise<string> {
   const direct = zip.file(name);
   if (direct) return direct.async("string");
-
   for (const [path, file] of Object.entries(zip.files)) {
     if (!file.dir && path.endsWith(`/${name}`)) {
       return file.async("string");
@@ -182,27 +381,26 @@ async function findGtfsFile(zip: JSZip, name: string): Promise<string> {
   throw new Error(`${name} not found in zip (checked root and subdirectories)`);
 }
 
-async function processCity(city: CityGTFS) {
-  console.log(`\n=== Processing ${city.name} ===`);
+// ── Core processing ────────────────────────────────────────────────────────────
 
-  console.log("Downloading GTFS zip...");
-  const response = await fetch(city.url);
-  if (!response.ok) throw new Error(`HTTP ${response.status} for ${city.name}`);
-  const buffer = await response.arrayBuffer();
+async function processAgency(
+  source: AgencySource,
+  buffer: ArrayBuffer,
+): Promise<RouteData[]> {
+  const { agencyId, agencyName } = source;
 
-  console.log("Extracting zip...");
+  console.log(`  Extracting ${agencyId}...`);
   const zip = await JSZip.loadAsync(buffer);
 
-  console.log("Parsing routes.txt...");
+  console.log(`  Parsing routes.txt [${agencyId}]...`);
   const routesRaw = parseCSV(await findGtfsFile(zip, "routes.txt"));
   const transitRoutes = routesRaw.filter(
-    (r) => r.route_type === "0" || r.route_type === "1" || r.route_type === "3",
+    (r) => routeTypeFromGtfs(r.route_type) !== null,
   );
   const routeMap = new Map(transitRoutes.map((r) => [r.route_id, r]));
+  console.log(`    ${agencyId}: ${transitRoutes.length} transit routes`);
 
-  console.log(`Found ${transitRoutes.length} transit routes`);
-
-  console.log("Parsing trips.txt...");
+  console.log(`  Parsing trips.txt [${agencyId}]...`);
   const tripsRaw = parseCSV(await findGtfsFile(zip, "trips.txt"));
   const tripsByRouteDir = new Map<
     string,
@@ -218,7 +416,7 @@ async function processCity(city: CityGTFS) {
     });
   }
 
-  console.log("Parsing shapes.txt...");
+  console.log(`  Parsing shapes.txt [${agencyId}]...`);
   const shapesRaw = parseCSV(await findGtfsFile(zip, "shapes.txt"));
   const shapePointsSeq = new Map<
     string,
@@ -242,7 +440,7 @@ async function processCity(city: CityGTFS) {
     );
   }
 
-  console.log("Parsing stops.txt...");
+  console.log(`  Parsing stops.txt [${agencyId}]...`);
   const stopsRaw = parseCSV(await findGtfsFile(zip, "stops.txt"));
   const stopsMap = new Map<
     string,
@@ -255,9 +453,8 @@ async function processCity(city: CityGTFS) {
       lng: parseFloat(s.stop_lon),
     });
   }
-  console.log(`Found ${stopsMap.size} stops`);
 
-  console.log("Parsing stop_times.txt...");
+  console.log(`  Parsing stop_times.txt [${agencyId}]...`);
   const stopTimesRaw = parseCSV(await findGtfsFile(zip, "stop_times.txt"));
   const stopsByTrip = new Map<string, { seq: number; stopId: string }[]>();
   for (const st of stopTimesRaw) {
@@ -272,18 +469,11 @@ async function processCity(city: CityGTFS) {
     entries.sort((a, b) => a.seq - b.seq);
   }
 
-  console.log("Building route data...");
+  console.log(`  Building routes [${agencyId}]...`);
   const DEFAULT_COLORS = [
-    "#009EE0",
-    "#E31837",
-    "#00A550",
-    "#F7A600",
-    "#6D2077",
-    "#00B5E2",
-    "#FF6720",
-    "#005DA8",
-    "#8DC63F",
-    "#C8102E",
+    "#009EE0", "#E31837", "#00A550", "#F7A600",
+    "#6D2077", "#00B5E2", "#FF6720", "#005DA8",
+    "#8DC63F", "#C8102E",
   ];
 
   const metroTerminals = new Map<string, Set<string>>();
@@ -299,7 +489,6 @@ async function processCity(city: CityGTFS) {
 
   const results: RouteData[] = [];
   let colorIdx = 0;
-
   const processedSingleDirRoutes = new Set<string>();
 
   for (const [key, trips] of tripsByRouteDir) {
@@ -309,7 +498,9 @@ async function processCity(city: CityGTFS) {
     const directionId = parseInt(directionIdStr);
     const rType = routeTypeFromGtfs(route.route_type);
     if (!rType) continue;
-    const isSingleDir = rType === "metro";
+
+    // Collapse metro and train to a single bidirectional entry
+    const isSingleDir = rType === "metro" || rType === "train";
 
     if (isSingleDir) {
       if (processedSingleDirRoutes.has(routeId)) continue;
@@ -372,43 +563,111 @@ async function processCity(city: CityGTFS) {
         : DEFAULT_COLORS[colorIdx % DEFAULT_COLORS.length];
     if (!isSingleDir) colorIdx++;
 
-    results.push({
-      id: isSingleDir ? routeId : `${routeId}-${directionId}`,
-      routeNumber,
-      direction: isSingleDir
-        ? stops.length >= 2
+    let direction: string;
+    if (isSingleDir) {
+      direction =
+        stops.length >= 2
           ? [stops[0].name, stops[stops.length - 1].name]
-              .map((n) => cleanMetroTerminal(n, city.id))
+              .map((n) => cleanMetroTerminal(n, agencyId))
               .join(" / ")
           : [...(metroTerminals.get(routeId) ?? [])]
-              .map((h) => cleanMetroTerminal(h, city.id))
-              .join(" / ")
-        : city.id === "ttc"
-          ? cleanTtcHeadsign(headsign, route.route_long_name ?? "")
-          : headsign,
+              .map((h) => cleanMetroTerminal(h, agencyId))
+              .join(" / ");
+    } else if (agencyId === "ttc") {
+      direction = cleanTtcHeadsign(headsign, route.route_long_name ?? "");
+    } else {
+      direction = headsign;
+    }
+
+    results.push({
+      id: isSingleDir
+        ? `${agencyId}:${routeId}`
+        : `${agencyId}:${routeId}-${directionId}`,
+      routeNumber,
+      direction,
       directionId: isSingleDir ? 0 : directionId,
       name: route.route_long_name ?? "",
       color,
       routeType: rType,
+      agency: agencyName,
       path,
       stops,
     });
   }
 
-  results.sort((a, b) => {
-    const typeOrder = { metro: 0, streetcar: 1, bus: 2 };
+  return results;
+}
+
+// ── City group processing ──────────────────────────────────────────────────────
+
+async function processGroup(city: CityGTFS, etagStore: ETagStore) {
+  console.log(`\n=== Processing ${city.name} ===`);
+
+  // Download all sources in parallel
+  const downloadResults = await Promise.allSettled(
+    city.sources.map((source) => downloadGtfs(source, etagStore)),
+  );
+
+  // Process each download result
+  const processResults = await Promise.allSettled(
+    downloadResults.map(async (dlResult, i) => {
+      const source = city.sources[i];
+      if (dlResult.status === "rejected") {
+        throw dlResult.reason;
+      }
+
+      const buffer = dlResult.value;
+
+      if (buffer === null) {
+        // 304 Not Modified — reuse cached processed data
+        const cached = loadAgencyCache(source.agencyId);
+        if (cached) {
+          console.log(`  ${source.agencyId}: reusing ${cached.length} cached routes`);
+          return cached;
+        }
+        // No cache on disk, need a fresh download
+        console.log(`  ${source.agencyId}: no local cache, forcing fresh download...`);
+        const freshBuffer = await fetchWithRetry(source.url);
+        if (!freshBuffer.ok) {
+          throw new Error(`HTTP ${freshBuffer.status} for ${source.agencyId}`);
+        }
+        const freshArrayBuffer = await freshBuffer.arrayBuffer();
+        return processAgency(source, freshArrayBuffer);
+      }
+
+      return processAgency(source, buffer);
+    }),
+  );
+
+  const allRoutes: RouteData[] = [];
+  for (const [i, result] of processResults.entries()) {
+    const source = city.sources[i];
+    if (result.status === "fulfilled") {
+      saveAgencyCache(source.agencyId, result.value);
+      allRoutes.push(...result.value);
+      console.log(`  ✓ ${source.agencyId}: ${result.value.length} routes`);
+    } else {
+      console.warn(`  ✗ ${source.agencyId} failed: ${result.reason} — skipping`);
+    }
+  }
+
+  allRoutes.sort((a, b) => {
+    const typeOrder: Record<string, number> = { metro: 0, train: 1, streetcar: 2, bus: 3 };
     if (a.routeType !== b.routeType)
-      return typeOrder[a.routeType] - typeOrder[b.routeType];
+      return (typeOrder[a.routeType] ?? 9) - (typeOrder[b.routeType] ?? 9);
     const na = parseInt(a.routeNumber) || 0;
     const nb = parseInt(b.routeNumber) || 0;
     if (na !== nb) return na - nb;
+    if (a.agency !== b.agency) return a.agency.localeCompare(b.agency);
     return a.directionId - b.directionId;
   });
 
-  console.log(`Writing ${results.length} route directions to ${city.output}`);
-  writeFileSync(city.output, JSON.stringify(results));
+  console.log(`Writing ${allRoutes.length} route directions to ${city.output}`);
+  writeFileSync(city.output, JSON.stringify(allRoutes));
   console.log(`Done with ${city.name}.`);
 }
+
+// ── Entry point ────────────────────────────────────────────────────────────────
 
 async function main() {
   const cityArg = process.argv
@@ -425,9 +684,13 @@ async function main() {
     process.exit(1);
   }
 
+  const etagStore = loadETagStore();
+
   for (const city of citiesToProcess) {
-    await processCity(city);
+    await processGroup(city, etagStore);
   }
+
+  saveETagStore(etagStore);
 }
 
 main().catch((err) => {

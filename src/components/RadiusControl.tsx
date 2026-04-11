@@ -4,7 +4,7 @@ interface Props {
 }
 
 const MIN = 100;
-const MAX = 1000;
+const MAX = 2000;
 const STEP = 50;
 
 export function RadiusControl({ radius, onChange }: Props) {
